@@ -1,1 +1,45 @@
-<!doctype html><html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>同行 · 会员社区交互设计</title><meta name="description" content="CFA会员社区小程序交互原型与UI设计评审"><link rel="stylesheet" href="style.css"><link rel="stylesheet" href="cfa-brand.css"></head><body><header class="studio-header"><a class="brand" href="#"><span class="brandmark">同</span><span>同行 <small>MEMBER COMMUNITY</small></span></a><nav id="modes"><button class="active" data-mode="prototype">交互原型</button><button data-mode="gallery">界面总览</button><button data-mode="flows">用户流程</button><button data-mode="system">设计规范</button></nav><span class="version">微信小程序 · 设计稿 V3.0</span></header><main id="studio"></main><div id="toast" role="status"></div><script src="app.js"></script><script src="community-v2.js"></script><script src="friend-invitation.js"></script><script src="connections.js"></script></body></html>
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>同行 · 会员社区</title>
+  <meta name="description" content="体验同行 CFA 会员社区交互原型">
+  <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="cfa-brand.css">
+  <style>
+    .studio-header { height: 64px; padding: 0 24px; }
+    .studio-header .restart { font-size: 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
+    .workspace { display: block; padding: 24px 16px; }
+    .sidebar, .note, .phone-caption { display: none; }
+    .phone-area { display: flex; justify-content: center; }
+    .phone { height: min(808px, calc(100dvh - 112px)); min-height: 560px; }
+    @media (max-width: 600px) {
+      .studio-header { height: 54px; padding: 0 16px; flex-wrap: nowrap; }
+      .workspace { padding: 0; }
+      .phone { height: calc(100dvh - 54px); min-height: 0; }
+    }
+  </style>
+</head>
+<body>
+  <header class="studio-header">
+    <a class="brand" href="./" aria-label="同行首页"><span class="brandmark">同</span><span>同行</span></a>
+    <button class="restart" type="button" onclick="window.location.reload()">重新体验</button>
+  </header>
+  <main id="studio" hidden></main>
+  <div id="toast" role="status"></div>
+  <script src="app.js"></script>
+  <script src="community-v2.js"></script>
+  <script src="friend-invitation.js"></script>
+  <script src="connections.js"></script>
+  <script>
+    const renderPrototype = render;
+    render = function () {
+      state.mode = 'prototype';
+      renderPrototype();
+    };
+    render();
+    document.getElementById('studio').hidden = false;
+  </script>
+</body>
+</html>
