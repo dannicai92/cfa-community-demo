@@ -9,6 +9,24 @@
   <link rel="stylesheet" href="cfa-brand.css">
   <link rel="stylesheet" href="language.css">
   <style>
+/* Match the existing publish control on Home and Community. */
+.phone.has-finder > .scroll { padding-bottom: 132px; }
+.fab.finder-fab { bottom: 148px; display: grid; place-items: center; background: #FFFFFF; color: var(--ink); border: 1px solid var(--line); }
+.finder-fab .icon { width: 23px; height: 23px; }
+.finder-page { padding: 0 20px 24px; }
+.finder-page .page-title { margin-top: 14px; }
+.finder-page textarea { width: 100%; min-height: 96px; resize: vertical; padding: 12px; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); background: white; line-height: 1.7; }
+.finder-label { display: block; margin: 18px 0 8px; font-size: 13px; font-weight: 600; }
+.finder-examples { display: flex; gap: 8px; flex-wrap: wrap; margin: 14px 0; }
+.finder-examples button { padding: 9px 11px; min-height: 40px; background: var(--pale); border: 1px solid var(--line); border-radius: 18px; font-size: 12px; text-align: left; }
+.finder-result { width: 100%; display: block; margin: 12px 0; padding: 15px; text-align: left; border: 1px solid var(--line); border-radius: 14px; background: white; overflow-wrap: anywhere; }
+.finder-result h3 { margin: 7px 0; font-size: 16px; }
+.finder-result p { margin: 7px 0; font-size: 13px; line-height: 1.7; color: var(--muted); }
+.finder-result footer { margin-top: 12px; color: var(--teal); font-size: 12px; }
+.finder-answer { margin-top: 20px; }
+.finder-page .hint { font-size: 11px; }
+</style>
+  <style>
     .studio-header { height: 64px; padding: 0 24px; }
     .studio-header .restart { font-size: 12px; padding: 8px 12px; border: 1px solid var(--line); border-radius: 8px; }
     .workspace { display: block; padding: 24px 16px; }
@@ -63,7 +81,7 @@ const html=assistantPhone(s,p);
 if(s!=='me'&&s!=='compose')return html;
 const helper=s==='me'
  ?button('profile','生成 / 编辑我的专业主页','Build / edit my profile')
- :button('need','自然语言需求助手','Natural language assistant');
+ :button('need','需求助手','Request assistant');
 const dock='<section class="assistant-dock" data-no-translate aria-label="'+t('模拟 AI 助手','Simulated AI assistant')+'">'+helper+'</section>';
 return html.replace(/(<nav class="bottomnav">|<div class="actionbar">)/,dock+'$1');
 };
@@ -109,6 +127,142 @@ document.getElementById('newText').closest('.inset').prepend(panel);
 })();
 
   </script>
+  <script>
+/* Deterministic, session-only discovery demo. No model or external API is connected. */
+(() => {
+  const tr = (zh, en) => language === 'en' ? en : zh;
+  const searchState = { draft: '', query: '', error: '', returnRoute: null };
+  const cities = [['深圳','shenzhen'],['广州','guangzhou'],['北京','beijing'],['上海','shanghai'],['成都','chengdu']];
+  const regions = {深圳:'华南',广州:'华南',北京:'北京',上海:'上海',成都:'华西'};
+  const concepts = [
+    ['消费', /消费|consumer|consumption/gi], ['新能源', /新能源|renewable|clean energy/gi],
+    ['研究', /投研|调研|研究|research/gi], ['职业', /职业|转型|career/gi],
+    ['私募股权', /私募股权|私募|private equity/gi], ['资产配置', /资产配置|asset allocation/gi],
+    ['阅读', /荐书|读书|阅读|书籍|图书|书|books?|reading/gi],
+    ['运动', /运动|跑步|徒步|散步|漫步|户外|sports?|running|hiking|walking/gi],
+    ['软件', /工具|软件|产品|技术|software|tools?|product/gi],
+    ['融资', /融资|投融资|投资伙伴|funding|fundraising/gi]
+  ];
+  const intents = [
+    ['event', /活动|沙龙|圆桌|events?|salon|meetup/i],
+    ['job', /招聘|求职|找工作|岗位|hiring|recruit|jobs?/i],
+    ['capital', /融资|投资意向|投融资|funding|fundraising/i],
+    ['book', /荐书|推荐.*书|读书|书籍|图书|书|books?|reading/i],
+    ['peer', /同行|分析师|研究员|peers?|analysts?|people/i]
+  ];
+  const examples = [
+    ['想找深圳做消费研究的同行','Find consumer research peers in Shenzhen'],
+    ['上海有哪些读书活动','Find reading events in Shanghai'],
+    ['想找消费行业的研究岗位','Find consumer research jobs']
+  ];
+  const match = (text, pattern) => { pattern.lastIndex = 0; return pattern.test(text); };
+  const inScope = city => state.region === '全国' || regions[city] === state.region;
+  const blockedName = name => Object.entries(peers).some(([id,p]) => p.name === name && (state.blockedPeers[id] || (id === 'lin' && state.blocked)));
+  const today = () => matchingToday();
+  function eventDate(event) {
+    const parts = event.date.match(/(?:(\d{4})\s*年\s*)?(\d{1,2})\s*月\s*(\d{1,2})\s*日/);
+    // Existing undated-year event examples belong to the 2026 demo dataset.
+    return parts ? `${parts[1] || '2026'}-${parts[2].padStart(2,'0')}-${parts[3].padStart(2,'0')}` : '';
+  }
+  function availableRecords() {
+    const records = visibleNeeds().filter(n => n.expires >= today() && !blockedName(n.name)).map(n => ({
+      key:'need:'+n.id, kind:'need', id:n.id, title:n.title, city:n.city, category:n.category,
+      text:n.text, meta:[n.category,n.city,n.org].filter(Boolean).join(' · '),
+      search:[n.title,n.text,n.target,n.industry,n.category,n.city].filter(Boolean).join(' ')
+    }));
+    Object.entries(peers).filter(([id,p]) => !id.startsWith('need-') && inScope(p.city) && !blockedName(p.name)).forEach(([id,p]) => records.push({
+      key:'peer:'+id,kind:'peer',id,title:p.name,city:p.city,text:p.bio,meta:[p.role,p.city,p.topic].join(' · '),search:[p.name,p.role,p.city,p.topic,p.bio].join(' ')
+    }));
+    events.filter(e => !e.ended && eventDate(e) >= today() && inScope(e.city)).forEach(e => records.push({
+      key:'event:'+e.id,kind:'event',id:e.id,title:e.title,city:e.city,text:e.sub,meta:[e.city,e.date,e.time].join(' · '),search:[e.title,e.sub,e.city,e.kind].join(' ')
+    }));
+    books.forEach((b,i) => records.push({key:'book:'+i,kind:'book',id:String(i),title:b.title,city:'',text:b.reason,meta:[b.author,b.by].join(' · '),search:[b.title,b.reason,'书 阅读',b.author].join(' ')}));
+    return records;
+  }
+  function interpret(query) {
+    const city = cities.find(([zh,en]) => query.includes(zh) || query.toLowerCase().includes(en))?.[0] || '';
+    const intent = intents.find(([,pattern]) => match(query,pattern))?.[0] || '';
+    const topics = concepts.filter(([,pattern]) => match(query,pattern));
+    let residual = query.toLowerCase();
+    cities.forEach(([zh,en]) => { residual = residual.replaceAll(zh,'').replaceAll(en,''); });
+    concepts.forEach(([,pattern]) => { residual = residual.replace(pattern,''); });
+    residual = residual.replace(/招聘|求职|找工作|岗位|分析师|研究员|同行|活动|沙龙|圆桌|帮我|我想|想要|想|寻找|找|推荐|有没有|有哪些|有什么|一本|几本|一位|几位|一个|几个|一些|相关|内容|希望|最近|近期|关注|行业|领域|方面|经验|可以|一起|的|在|做|有|能|吗|呢|我|请/g,'');
+    residual = residual.replace(/\b(find|me|i|want|to|a|an|the|in|with|about|some|any|are|there|show|help|peers?|analysts?|people|events?|jobs?|hiring|recruit|please)\b/g,'');
+    const tokens = [...new Set((residual.match(/[a-z]{3,}|[\u4e00-\u9fff]{2,}/g) || []).flatMap(word => /[a-z]/.test(word) ? [word] : Array.from({length:word.length-1},(_,i)=>word.slice(i,i+2))))];
+    return {city,intent,topics,tokens};
+  }
+  function find(query) {
+    const parsed = interpret(query);
+    const rows = availableRecords().filter(row => {
+      if(parsed.city && row.city !== parsed.city) return false;
+      if(parsed.intent === 'job' && !(row.kind === 'need' && ['人才招聘','求职','找伙伴'].includes(row.category))) return false;
+      if(parsed.intent === 'capital' && !(row.kind === 'need' && row.category === '投融资对接')) return false;
+      if(['peer','event','book'].includes(parsed.intent) && row.kind !== parsed.intent) return false;
+      if(!parsed.topics.every(([,pattern]) => match(row.search,pattern))) return false;
+      if(parsed.tokens.length && !parsed.tokens.some(token => row.search.toLowerCase().includes(token))) return false;
+      return !!(parsed.city || parsed.intent || parsed.topics.length || parsed.tokens.length);
+    }).map(row => ({...row,score:parsed.tokens.filter(token => row.search.toLowerCase().includes(token)).length + parsed.topics.length * 2}));
+    return rows.sort((a,b)=>b.score-a.score).slice(0,8);
+  }
+  const kindLabel = kind => ({peer:tr('同行','Peer'),need:tr('需求','Request'),event:tr('活动','Event'),book:tr('荐书','Book')})[kind];
+  function finderBody() {
+    const results = searchState.query ? find(searchState.query) : [];
+    const answer = results.length
+      ? tr(`找到了 ${results.length} 条相关内容。可以先看看「${results[0].title}」，下面的卡片可打开原内容，了解详情或发起交流。`, `Found ${results.length} relevant results. Start with “${results[0].title}”. Open a card to view the original content or connect.`)
+      : tr('当前范围内没有找到匹配内容。试试调整城市或关键词，例如“消费研究同行”“上海读书活动”；也可以返回首页切换地区。','No matching content in the current scope. Try a different city or topic, such as consumer research peers or reading events in Shanghai, or change the region on Home.');
+    return `<div class="finder-page" data-no-translate><h1 class="page-title">${tr('你想找什么？','What are you looking for?')}</h1><p class="subtitle">${tr('用一句话，说说你想认识的人或想参与的事。','Describe the people or opportunities you are looking for.')}</p><span class="tag">${tr('模拟 AI · 未接入大模型','Simulated AI · No language model connected')}</span><p class="hint">${tr('基于当前可见的示例内容进行本地规则匹配；只总结已找到的内容，不搜索私人消息。查找范围：','Local rule matching over visible demo content; summaries use found records only. Private messages are excluded. Scope: ')}${esc(state.region === '全国' ? tr('全国','Nationwide') : state.region)}</p><form id="finder-form"><label class="finder-label" for="finder-query">${tr('告诉我你的想法','Describe what you need')}</label><textarea id="finder-query" maxlength="300" placeholder="${tr('例如：想找深圳做消费研究的同行','Example: Find consumer research peers in Shenzhen')}">${esc(searchState.draft)}</textarea><div class="finder-examples">${examples.map((example,i)=>`<button type="button" data-finder-example="${i}">${tr(...example)}</button>`).join('')}</div><p class="error" role="alert">${esc(searchState.error)}</p><button class="primary" type="submit">${tr('帮我找','Find for me')}</button></form>${searchState.query ? `<section class="finder-answer" role="status"><h3>${tr('查找回答（模拟）','Search answer (simulated)')}</h3><p class="bodytext">${esc(answer)}</p><p class="hint">${tr('你的描述：','Your request: ')}${esc(searchState.query)}</p></section><section aria-label="${tr('相关内容','Related content')}">${results.map(row=>`<button class="finder-result" data-finder-result="${esc(row.key)}"><span class="tag">${kindLabel(row.kind)}</span><h3>${esc(row.title)}</h3><p>${esc(row.text)}</p><small class="meta">${esc(row.meta)}</small><footer>${tr('查看原内容 →','View original →')}</footer></button>`).join('')}</section>` : ''}</div>`;
+  }
+  addScreen('finder','帮我找','用一句话查找同行与内容。','自然语言查找','仅匹配可见示例内容','结果有来源','打开原内容继续交流');
+  backMap.finder = 'town';
+  const previousBody=body, previousPhone=phone, previousGo=go;
+  body=function(s,p){return s === 'finder' ? finderBody() : previousBody(s,p);};
+  phone=function(s,p){
+    let html=previousPhone(s,p);
+    if(s==='finder' && language==='en')html=html.replace('帮我找','Find for me');
+    if(!['home','town'].includes(s))return html;
+    html=html.replace('<div class="phone">','<div class="phone has-finder">');
+    if(s==='town')html=html.replace('</nav>','</nav><button class="fab" data-go="compose" aria-label="发布动态或需求">+</button>');
+    return html.replace('<button class="fab"',`<button class="fab finder-fab" data-finder-open aria-label="${tr('帮我找','Find for me')}" title="${tr('帮我找','Find for me')}">${ico('search')}</button><button class="fab"`);
+  };
+  go=function(s){
+    if(searchState.returnRoute && state.screen === searchState.returnRoute.screen){
+      backMap[searchState.returnRoute.screen]=searchState.returnRoute.previous;
+      searchState.returnRoute=null;
+    }
+    return previousGo(s);
+  };
+  function submitQuery(query){
+    searchState.draft=query.slice(0,300);
+    searchState.error=query.trim() ? '' : tr('请先描述你想找什么。','Please describe what you are looking for.');
+    if(!searchState.error)searchState.query=searchState.draft.trim();
+    render();
+    if(searchState.error)document.getElementById('finder-query')?.focus();
+    else document.querySelector('.finder-answer')?.scrollIntoView({block:'start'});
+  }
+  document.addEventListener('input',e=>{if(e.target.id==='finder-query')searchState.draft=e.target.value;});
+  document.addEventListener('submit',e=>{if(e.target.id==='finder-form'){e.preventDefault();submitQuery(value('finder-query'));}});
+  document.addEventListener('click',e=>{
+    const button=e.target.closest('button');if(!button)return;
+    if(button.hasAttribute('data-finder-open')){backMap.finder=state.screen;go('finder');document.getElementById('finder-query')?.focus();}
+    if(button.hasAttribute('data-finder-example')){const example=examples[Number(button.dataset.finderExample)];if(example)submitQuery(tr(...example));}
+    if(button.hasAttribute('data-finder-result')){
+      const record=find(searchState.query).find(row=>row.key===button.dataset.finderResult);
+      if(!record){render();return;}
+      const screen={need:'need',peer:'nearProfile',event:'event',book:'bookDetail'}[record.kind];
+      if(record.kind==='need')state.selectedNeed=record.id;
+      if(record.kind==='peer')state.peer=record.id;
+      if(record.kind==='event'){state.selectedEvent=record.id;state.eventStatus='none';}
+      if(record.kind==='book'){state.bookIndex=Number(record.id);state.bookWant=false;state.bookRead=false;state.bookThought='';}
+      searchState.returnRoute={screen,previous:backMap[screen]};backMap[screen]='finder';go(screen);
+    }
+    if(button.hasAttribute('data-language')){
+      if(state.screen==='finder')render();
+      document.querySelectorAll('[data-finder-open]').forEach(el=>{el.title=tr('帮我找','Find for me');el.setAttribute('aria-label',el.title);});
+      document.querySelectorAll('[data-assist="need"]').forEach(el=>{el.textContent=tr('需求助手','Request assistant');});
+    }
+  });
+})();
+</script>
   <script>
     const renderPrototype = render;
     render = function () {
