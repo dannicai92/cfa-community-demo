@@ -14,7 +14,13 @@
     .workspace { display: block; padding: 24px 16px; }
     .sidebar, .note, .phone-caption { display: none; }
     .phone-area { display: flex; justify-content: center; }
-    .phone { height: min(808px, calc(100dvh - 112px)); min-height: 560px; }
+    .phone { height: min(808px, calc(100dvh - 112px)); min-height: 0; }
+    /* A dedicated flex row reserves space for the helper; it never overlays content. */
+    .phone > .scroll { min-height: 0; }
+    .phone > .assistant-dock { flex: 0 0 auto; padding: 10px 20px; background: #FFFFFF; border-top: 1px solid var(--line); }
+    .assistant-dock .secondary { min-height: 44px; }
+    .phone > .assistant-dock ~ .bottomnav,
+    .phone > .assistant-dock ~ .actionbar { flex-shrink: 0; }
     @media (max-width: 600px) {
       .studio-header { height: 54px; padding: 0 16px; flex-wrap: nowrap; }
       .workspace { padding: 0; }
@@ -45,12 +51,21 @@ const button=(id,zh,en)=>'<button class="secondary" data-assist="'+id+'">'+t(zh,
 let profile=null,draft=null,preview=false;
 const labels=[['简介','Introduction'],['专业方向','Expertise'],['兴趣','Interests'],['希望连接的同行','People to connect with']];
 const extract=(s,re)=>s.match(re)?.[0]||'';
-const oldBody=body;
+const oldBody=body,assistantPhone=phone;
 body=function(s,p){
-let html=oldBody(s,p);
-if(s==='me') html='<section class="inset" data-no-translate><h3>'+t('我的专业主页','My professional profile')+'</h3>'+ (profile?profile.map((v,i)=>'<p><strong>'+t(...labels[i])+': </strong>'+esc(v)+'</p>').join(''):'')+button('profile','生成 / 编辑主页','Build / edit profile')+'</section>'+html;
-if(s==='compose')html='<section class="inset" data-no-translate>'+button('need','自然语言需求助手','Natural language assistant')+'</section>'+html;
-return html;
+const html=oldBody(s,p);
+if(s!=='me'||!profile)return html;
+return html+'<section class="inset" data-no-translate><h3>'+t('我的专业主页','My professional profile')+'</h3>'+profile.map((v,i)=>'<p><strong>'+t(...labels[i])+': </strong>'+esc(v)+'</p>').join('')+'</section>';
+};
+/* Keep both helpers outside the scrolling content, immediately above navigation/actions. */
+phone=function(s,p){
+const html=assistantPhone(s,p);
+if(s!=='me'&&s!=='compose')return html;
+const helper=s==='me'
+ ?button('profile','生成 / 编辑我的专业主页','Build / edit my profile')
+ :button('need','自然语言需求助手','Natural language assistant');
+const dock='<section class="assistant-dock" data-no-translate aria-label="'+t('模拟 AI 助手','Simulated AI assistant')+'">'+helper+'</section>';
+return html.replace(/(<nav class="bottomnav">|<div class="actionbar">)/,dock+'$1');
 };
 function open(kind){
 document.getElementById('assistant-dialog')?.remove();
