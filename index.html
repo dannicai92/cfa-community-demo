@@ -37,6 +37,64 @@
   <script src="translations.js"></script>
   <script src="language.js"></script>
   <script>
+
+/* Local deterministic demo only; no API, credentials or network requests. */
+(()=>{
+const t=(zh,en)=>language==='en'?en:zh;
+const button=(id,zh,en)=>'<button class="secondary" data-assist="'+id+'">'+t(zh,en)+'</button>';
+let profile=null,draft=null,preview=false;
+const labels=[['简介','Introduction'],['专业方向','Expertise'],['兴趣','Interests'],['希望连接的同行','People to connect with']];
+const extract=(s,re)=>s.match(re)?.[0]||'';
+const oldBody=body;
+body=function(s,p){
+let html=oldBody(s,p);
+if(s==='me') html='<section class="inset" data-no-translate><h3>'+t('我的专业主页','My professional profile')+'</h3>'+ (profile?profile.map((v,i)=>'<p><strong>'+t(...labels[i])+': </strong>'+esc(v)+'</p>').join(''):'')+button('profile','生成 / 编辑主页','Build / edit profile')+'</section>'+html;
+if(s==='compose')html='<section class="inset" data-no-translate>'+button('need','自然语言需求助手','Natural language assistant')+'</section>'+html;
+return html;
+};
+function open(kind){
+document.getElementById('assistant-dialog')?.remove();
+const d=document.createElement('dialog');d.id='assistant-dialog';d.style.cssText='width:min(90vw,480px);max-height:85vh;overflow:auto;border:1px solid #4476FF;border-radius:16px;padding:24px;color:#06005A';d.dataset.noTranslate='';
+d.innerHTML='<h2>'+t('模拟 AI 助手','Simulated AI assistant')+'</h2><p>'+t('本地规则演示，未接入大模型。仅本次会话保存，请勿输入敏感资料。','Local rules, no language model connected. Session only; avoid sensitive information.')+'</p><label>'+t('用自然语言描述','Describe in your own words')+'<textarea id="assist-source" maxlength="3000" style="width:100%;min-height:100px"></textarea></label>'+button('generate-'+kind,'生成可编辑草稿','Generate editable draft')+'<div id="assist-fields"></div>'+button('close','取消 / 关闭','Cancel / close');
+document.body.append(d);d.showModal();
+if(kind==='profile'&&profile){draft=[...profile];showProfile();}
+}
+function showProfile(){
+preview=false;
+document.getElementById('assist-fields').innerHTML=draft.map((v,i)=>'<label>'+t(...labels[i])+'<textarea id="profile-'+i+'" style="width:100%">'+esc(v)+'</textarea></label>').join('')+button('preview','预览','Preview');
+}
+document.addEventListener('click',e=>{
+const b=e.target.closest('[data-assist]');if(!b)return;
+const a=b.dataset.assist;
+if(a==='close'){document.getElementById('assistant-dialog').close();return}
+if(a==='profile'||a==='need'){open(a);return}
+const source=document.getElementById('assist-source')?.value.trim();
+if(a.startsWith('generate-')&&!source){toast(t('请先输入描述','Enter a description first'));return}
+if(a==='generate-profile'){
+draft=[source,extract(source,/消费|新能源|科技|金融|research|technology|finance/i),extract(source,/徒步|咖啡|阅读|跑步|hiking|reading|running/i),source.match(/(?:希望|想)(?:连接|认识|交流)([^。\n]+)/)?.[1]||''];showProfile();
+}
+if(a==='preview'){
+draft=labels.map((_,i)=>document.getElementById('profile-'+i).value.trim());
+document.getElementById('assist-fields').innerHTML='<h3>'+t('确认前预览','Preview before confirmation')+'</h3>'+draft.map((v,i)=>'<p><strong>'+t(...labels[i])+': </strong>'+esc(v)+'</p>').join('')+button('edit','继续编辑','Edit')+button('confirm','确认保存主页','Confirm profile');preview=true;
+}
+if(a==='edit')showProfile();
+if(a==='confirm'&&preview){profile=[...draft];document.getElementById('assistant-dialog').remove();render();}
+if(a==='generate-need'){
+const category=/招聘|招人|hiring|recruit/i.test(source)?'人才招聘':/求职|找工作|job seeking/i.test(source)?'求职':/融资|投资|funding|investment/i.test(source)?'投融资对接':/研究|买方|卖方|research|analyst/i.test(source)?'买卖方交流':'业务合作';
+state.composeType=category;state.draft=source;state.editingNeed=null;
+document.getElementById('assistant-dialog').remove();render();
+const data={newText:source,newTitle:source.slice(0,60),newCity:extract(source,/深圳|广州|北京|上海|成都/),newIndustry:extract(source,/新能源|消费|科技|企业服务|金融/),newTarget:source.match(/(?:寻找|希望连接|希望认识)([^，。\n]+)/)?.[1]||'',newExpiry:extract(source,/20\d{2}-\d{2}-\d{2}/)};
+Object.entries(data).forEach(([id,v])=>{const el=document.getElementById(id);if(el)el.value=v;});
+const fields=[['newCity','在哪个城市？','Which city?'],['newTarget','希望联系谁？','Who should respond?'],['newOrg','以什么主体发布？','Who is publishing?'],['newExpiry','有效期到哪一天？','What is the expiry date?'],['newIndustry','关注哪个行业？','Which industry?'],['newPay','报酬范围是多少？','What is the pay range?']];
+const panel=document.createElement('section');panel.className='inset';panel.dataset.noTranslate='';
+panel.innerHTML='<div class="banner">'+t('模拟分类：','Simulated category: ')+esc(category)+'<p>'+t('请检查并修改下方草稿。还需要补充：','Review and edit the draft below. Please complete:')+'</p>'+fields.filter(([id])=>document.getElementById(id)&&!document.getElementById(id).value).map(([,zh,en])=>'<p>'+t(zh,en)+'</p>').join('')+'<p>'+t('未识别字段及默认选项请自行确认，助手不会代填授权。确认后点击原有“提交审核”；审核通过前不会公开。','Verify missing fields and default selections. Authorization is never assumed. Use Submit for review after confirmation; nothing is public before approval.')+'</p></div>';
+document.getElementById('newText').closest('.inset').prepend(panel);
+}
+});
+})();
+
+  </script>
+  <script>
     const renderPrototype = render;
     render = function () {
       state.mode = 'prototype';
