@@ -11,6 +11,8 @@ const assert=require('node:assert/strict');
  assert.equal(await p.locator('.scroll [data-go="selfProfile"]').count(),0);
  assert.equal(await p.locator('.scroll [data-social="follow"]').count(),0);
  await p.getByRole('button',{name:'编辑资料',exact:true}).click();
+ assert.equal(await p.locator('#profile-dialog').count(),0);
+ assert.equal(await p.locator('.scroll #inline-profile-editor').count(),1);
  await p.locator('#edit-bio').fill('这条修改应该取消');
  await p.getByRole('button',{name:'取消',exact:true}).click();
  assert.doesNotMatch(await p.locator('.profile-head').innerText(),/应该取消/);

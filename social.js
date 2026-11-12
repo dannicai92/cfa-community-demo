@@ -20,20 +20,25 @@
   function stats(id){return `<div class="profile-stats" data-no-translate aria-label="${tr('社交数据','Social stats')}">${[['following',tr('关注','Following'),related(id,'following').length],['followers',tr('被关注','Followers'),related(id,'followers').length],['kudos',tr('夸夸','Kudos'),visible(id).length]].map(([kind,label,n])=>action('list',`<strong>${n}</strong><span>${label}</span>`,`data-owner="${id}" data-kind="${kind}"`)).join('')}</div>`;}
   const follow=id=>action('follow',edges.has('self:'+id)?tr('已关注','Following'):tr('关注','Follow'),`data-person="${id}" aria-pressed="${edges.has('self:'+id)}"`,'social-follow');
   function tools(id){return `<div class="social-tools" data-no-translate>${follow(id)}${action('write',tr('夸夸TA','Send kudos'),`data-person="${id}"`,'social-kudos')}</div>`;}
+  let editDraft=null;
+  function profileFields(){return [['role',tr('职业 / 身份','Role'),80],['city',tr('城市','City'),40],['bio',tr('个人简介','Bio'),300],['interests',tr('兴趣标签（用逗号分隔，最多 6 个）','Interests (comma separated, up to 6)'),150],['topics',tr('可以聊什么','Topics to discuss'),200],['connect',tr('希望认识的同行','People to connect with'),200]];}
+  function profileForm(){
+    return `<section id="inline-profile-editor" class="inline-profile-editor" data-no-translate aria-label="${tr('编辑资料','Edit profile')}"><h2>${tr('编辑资料','Edit profile')}</h2><form id="profile-edit-form">${profileFields().map(([key,label,max])=>`<label class="field" for="edit-${key}">${label}${key==='bio'?`<textarea id="edit-${key}" maxlength="${max}" rows="3">${esc(editDraft[key])}</textarea>`:`<input id="edit-${key}" maxlength="${max}" value="${esc(editDraft[key])}">`}</label>`).join('')}<p class="hint">${tr('演示资料仅保留在本次体验中。','Demo edits last for this session.')}</p><p id="profile-edit-error" class="error" role="alert"></p><div class="social-tools">${action('cancel-edit',tr('取消','Cancel'),'','secondary')}<button class="primary" type="submit">${tr('保存资料','Save profile')}</button></div></form></section>`;
+  }
   function selfPage(){
     const p=ownProfile;
-    return profilePage(`<div class="profile-cover"></div><div class="profile-head" data-no-translate>${av('陈','large')}<h1>${esc(p.name)} <button class="verified profile-verification" data-social="verify" aria-label="${tr('查看身份核验说明','View verification details')}">${tr('身份已核验','Identity verified')}</button></h1>${p.interests.length?`<div class="profile-interests">${p.interests.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>`:''}<p class="bodytext">${esc(p.role)} · ${esc(p.city)}</p><p class="bodytext personal-post-text">${esc(p.bio)}</p>${stats('self')}<div class="social-tools">${action('edit-profile',tr('编辑资料','Edit profile'),'','social-follow')}</div><div class="banner">${state.acceptInvites?tr('欢迎同行交流','Open to peer conversations'):tr('暂不接受邀请','Not accepting invitations')}</div></div><section class="sectionbox" data-no-translate><h3>${tr('关于我','About me')}</h3><p class="bodytext personal-post-text">${esc(p.bio)}</p>${p.topics?`<h3>${tr('可以聊什么','Topics to discuss')}</h3><p class="bodytext">${esc(p.topics)}</p>`:''}${p.connect?`<h3>${tr('希望认识','People to connect with')}</h3><p class="bodytext">${esc(p.connect)}</p>`:''}</section><section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('self').map(k=>`<p class="quote">${esc(k.text)}</p>`).join('')||`<p>${tr('还没有展示的夸夸','No public kudos yet')}</p>`}${action('list',tr('查看全部','View all'),'data-owner="self" data-kind="kudos"','backlink')}</section>`,'self');
+    const html=profilePage(`<div class="profile-cover"></div><div class="profile-head" data-no-translate>${av('陈','large')}<h1>${esc(p.name)} <button class="verified profile-verification" data-social="verify" aria-label="${tr('查看身份核验说明','View verification details')}">${tr('身份已核验','Identity verified')}</button></h1>${p.interests.length?`<div class="profile-interests">${p.interests.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>`:''}<p class="bodytext">${esc(p.role)} · ${esc(p.city)}</p><p class="bodytext personal-post-text">${esc(p.bio)}</p>${stats('self')}<div class="social-tools">${action('edit-profile',tr('编辑资料','Edit profile'),'','social-follow')}</div><div class="banner">${state.acceptInvites?tr('欢迎同行交流','Open to peer conversations'):tr('暂不接受邀请','Not accepting invitations')}</div></div><section class="sectionbox" data-no-translate><h3>${tr('关于我','About me')}</h3><p class="bodytext personal-post-text">${esc(p.bio)}</p>${p.topics?`<h3>${tr('可以聊什么','Topics to discuss')}</h3><p class="bodytext">${esc(p.topics)}</p>`:''}${p.connect?`<h3>${tr('希望认识','People to connect with')}</h3><p class="bodytext">${esc(p.connect)}</p>`:''}</section><section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('self').map(k=>`<p class="quote">${esc(k.text)}</p>`).join('')||`<p>${tr('还没有展示的夸夸','No public kudos yet')}</p>`}${action('list',tr('查看全部','View all'),'data-owner="self" data-kind="kudos"','backlink')}</section>`,'self');
+    return editDraft?html.replace('<div class="profile-content-tabs"',profileForm()+'<div class="profile-content-tabs"'):html;
   }
   function closeProfileDialog(){const d=document.getElementById('profile-dialog');if(d){d.close();d.remove();}document.querySelector('[data-social="menu"]')?.focus();}
-  function showProfileDialog(edit=false){
+  function showProfileDialog(){
     closeProfileDialog();
     const d=document.createElement('dialog');d.id='profile-dialog';d.className='profile-dialog';d.dataset.noTranslate='';d.setAttribute('aria-labelledby','profile-dialog-title');
-    const title=edit?tr('编辑资料','Edit profile'):tr('个人菜单','Profile menu');
+    const title=tr('个人菜单','Profile menu');
     const rows=[['review','我的发布','My posts'],['registered','我的报名','My registrations'],['messages','我的交流','My conversations'],['privacy','隐私与交流意愿','Privacy and invitations'],['onboarding','首次加入流程','Onboarding demo']];
-    const fields=[['role',tr('职业 / 身份','Role'),80],['city',tr('城市','City'),40],['bio',tr('个人简介','Bio'),300],['interests',tr('兴趣标签（用逗号分隔，最多 6 个）','Interests (comma separated, up to 6)'),150],['topics',tr('可以聊什么','Topics to discuss'),200],['connect',tr('希望认识的同行','People to connect with'),200]];
-    d.innerHTML=`<div class="profile-dialog-heading"><h2 id="profile-dialog-title">${title}</h2>${action('close-dialog',tr('关闭','Close'))}</div>`+(edit?`<form id="profile-edit-form">${fields.map(([key,label,max])=>`<label class="field" for="edit-${key}">${label}${key==='bio'?`<textarea id="edit-${key}" maxlength="${max}" rows="3">${esc(ownProfile[key])}</textarea>`:`<input id="edit-${key}" maxlength="${max}" value="${esc(key==='interests'?ownProfile.interests.join('，'):ownProfile[key])}">`}</label>`).join('')}<p class="hint">${tr('演示资料仅保留在本次体验中。','Demo edits last for this session.')}</p><p id="profile-edit-error" class="error" role="alert"></p><div class="social-tools">${action('close-dialog',tr('取消','Cancel'),'','secondary')}<button class="primary" type="submit">${tr('保存资料','Save profile')}</button></div></form>`:`<div class="profile-menu-list">${rows.map(([route,zh,en])=>action('manage',`<span>${tr(zh,en)}</span><span aria-hidden="true">›</span>`,`data-route="${route}"`)).join('')}<button type="button" data-assist="profile">${tr('专业主页助手','Professional profile assistant')}<span aria-hidden="true">›</span></button></div>`);
+    d.innerHTML=`<div class="profile-dialog-heading"><h2 id="profile-dialog-title">${title}</h2>${action('close-dialog',tr('关闭','Close'))}</div>`+`<div class="profile-menu-list">${rows.map(([route,zh,en])=>action('manage',`<span>${tr(zh,en)}</span><span aria-hidden="true">›</span>`,`data-route="${route}"`)).join('')}<button type="button" data-assist="profile">${tr('专业主页助手','Professional profile assistant')}<span aria-hidden="true">›</span></button></div>`;
     d.addEventListener('click',e=>{if(e.target===d)closeProfileDialog();});
-    document.body.append(d);d.showModal();if(edit)d.querySelector('input').focus();
+    document.body.append(d);d.showModal();
   }
   document.addEventListener('profile-assistant-saved',e=>{const [bio,topics,interests,connect]=e.detail;Object.assign(ownProfile,{bio,topics,connect,interests:interests.split(/[,，、\n]/).map(x=>x.trim()).filter(Boolean).slice(0,6)});});
   document.addEventListener('submit',e=>{
@@ -43,7 +48,7 @@
     const tags=[...new Set(read('interests').split(/[,，、\n]/).map(x=>x.trim()).filter(Boolean))];
     if(tags.length>6||tags.some(x=>x.length>20)){document.getElementById('profile-edit-error').textContent=tr('最多 6 个标签，每个不超过 20 字。','Up to 6 tags, 20 characters each.');return;}
     Object.assign(ownProfile,{role:read('role'),city:read('city'),bio:read('bio'),topics:read('topics'),connect:read('connect'),interests:tags});
-    closeProfileDialog();render();document.querySelector('[data-social="edit-profile"]')?.focus();toast(tr('资料已更新','Profile updated'));
+    editDraft=null;render();document.querySelector('[data-social="edit-profile"]')?.focus();toast(tr('资料已更新','Profile updated'));
   });
   const profileTabs={};
   let ownLiked=false,ownComment='';
@@ -111,14 +116,15 @@
     return oldGo(s);
   };
   act=function(a){const result=oldAct(a);if(a==='follow')sync();return result;};
-  document.addEventListener('input',e=>{if(e.target.id==='kudos-text')draft=e.target.value;});
+  document.addEventListener('input',e=>{if(editDraft&&e.target.closest('#profile-edit-form'))editDraft[e.target.id.slice(5)]=e.target.value;if(e.target.id==='kudos-text')draft=e.target.value;});
   document.addEventListener('change',e=>{if(e.target.id==='kudos-consent')consent=e.target.checked;});
   document.addEventListener('click',e=>{
     if(e.target.closest('#profile-dialog [data-assist]'))closeProfileDialog();
     const b=e.target.closest('[data-social]');if(!b){if(e.target.closest('[data-language]'))render();return;}
     const a=b.dataset.social,id=b.dataset.person;
     if(a==='menu')showProfileDialog();
-    if(a==='edit-profile')showProfileDialog(true);
+    if(a==='edit-profile'){if(!editDraft)editDraft={...ownProfile,interests:ownProfile.interests.join('，')};render();document.getElementById('inline-profile-editor').scrollIntoView({block:'start'});document.getElementById('edit-role').focus({preventScroll:true});}
+    if(a==='cancel-edit'){editDraft=null;render();document.querySelector('[data-social="edit-profile"]')?.focus();}
     if(a==='close-dialog')closeProfileDialog();
     if(a==='manage'){const route=b.dataset.route;closeProfileDialog();backMap[route]=state.screen;go(route);}
     if(a==='list'){visit(b.dataset.kind==='kudos'?'kudos':'socialConnections',()=>{owner=b.dataset.owner;tab=b.dataset.kind;});}
