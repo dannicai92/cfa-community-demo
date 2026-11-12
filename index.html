@@ -112,7 +112,7 @@ draft=labels.map((_,i)=>document.getElementById('profile-'+i).value.trim());
 document.getElementById('assist-fields').innerHTML='<h3>'+t('确认前预览','Preview before confirmation')+'</h3>'+draft.map((v,i)=>'<p><strong>'+t(...labels[i])+': </strong>'+esc(v)+'</p>').join('')+button('edit','继续编辑','Edit')+button('confirm','确认保存主页','Confirm profile');preview=true;
 }
 if(a==='edit')showProfile();
-if(a==='confirm'&&preview){profile=[...draft];document.getElementById('assistant-dialog').remove();render();}
+if(a==='confirm'&&preview){profile=[...draft];document.dispatchEvent(new CustomEvent('profile-assistant-saved',{detail:[...profile]}));document.getElementById('assistant-dialog').remove();render();}
 if(a==='generate-need'){
 const category=/招聘|招人|hiring|recruit/i.test(source)?'人才招聘':/求职|找工作|job seeking/i.test(source)?'求职':/融资|投资|funding|investment/i.test(source)?'投融资对接':/研究|买方|卖方|research|analyst/i.test(source)?'买卖方交流':'业务合作';
 state.composeType=category;state.draft=source;state.editingNeed=null;

@@ -47,7 +47,6 @@ const assert=require('node:assert/strict');
  }
  await page.setViewportSize({width:390,height:844});
  await page.screenshot({path:'social-preview.png'});
- await page.locator('.scroll [data-go="selfProfile"]').click();
  assert.match(await page.locator('.profile-head').innerText(),/陈安/);
  await page.evaluate(()=>go('profile'));
  assert.equal(await page.locator('.profile-stats').count(),1);

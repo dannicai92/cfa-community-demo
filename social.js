@@ -1,7 +1,8 @@
 /* Session-only relationships and kudos for the interactive demo. */
 (() => {
   const tr = (zh, en) => typeof language !== 'undefined' && language === 'en' ? en : zh;
-  const person = id => id === 'self' ? {name:'陈安',role:'CFA 会员',city:'深圳',bio:'从一次认真交流开始，找到自己的同行。'} : peers[id];
+  const ownProfile={name:'陈安',role:'CFA 会员',city:'深圳',bio:'从一次认真交流开始，找到自己的同行。',interests:[],topics:'',connect:''};
+  const person = id => id === 'self' ? ownProfile : peers[id];
   const edges = new Set(['self:xu','zhou:self','lin:self','lin:xu','zhou:lin','xu:lin']);
   const kudos = [
     {from:'zhou',to:'self',text:'总能认真听完别人的问题，再分享具体的建议。和你交流很舒服。',status:'visible'},
@@ -19,6 +20,31 @@
   function stats(id){return `<div class="profile-stats" data-no-translate aria-label="${tr('社交数据','Social stats')}">${[['following',tr('关注','Following'),related(id,'following').length],['followers',tr('被关注','Followers'),related(id,'followers').length],['kudos',tr('夸夸','Kudos'),visible(id).length]].map(([kind,label,n])=>action('list',`<strong>${n}</strong><span>${label}</span>`,`data-owner="${id}" data-kind="${kind}"`)).join('')}</div>`;}
   const follow=id=>action('follow',edges.has('self:'+id)?tr('已关注','Following'):tr('关注','Follow'),`data-person="${id}" aria-pressed="${edges.has('self:'+id)}"`,'social-follow');
   function tools(id){return `<div class="social-tools" data-no-translate>${follow(id)}${action('write',tr('夸夸TA','Send kudos'),`data-person="${id}"`,'social-kudos')}</div>`;}
+  function selfPage(){
+    const p=ownProfile;
+    return profilePage(`<div class="profile-cover"></div><div class="profile-head" data-no-translate>${av('陈','large')}<h1>${esc(p.name)} <button class="verified profile-verification" data-social="verify" aria-label="${tr('查看身份核验说明','View verification details')}">${tr('身份已核验','Identity verified')}</button></h1>${p.interests.length?`<div class="profile-interests">${p.interests.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>`:''}<p class="bodytext">${esc(p.role)} · ${esc(p.city)}</p><p class="bodytext personal-post-text">${esc(p.bio)}</p>${stats('self')}<div class="social-tools">${action('edit-profile',tr('编辑资料','Edit profile'),'','social-follow')}</div><div class="banner">${state.acceptInvites?tr('欢迎同行交流','Open to peer conversations'):tr('暂不接受邀请','Not accepting invitations')}</div></div><section class="sectionbox" data-no-translate><h3>${tr('关于我','About me')}</h3><p class="bodytext personal-post-text">${esc(p.bio)}</p>${p.topics?`<h3>${tr('可以聊什么','Topics to discuss')}</h3><p class="bodytext">${esc(p.topics)}</p>`:''}${p.connect?`<h3>${tr('希望认识','People to connect with')}</h3><p class="bodytext">${esc(p.connect)}</p>`:''}</section><section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('self').map(k=>`<p class="quote">${esc(k.text)}</p>`).join('')||`<p>${tr('还没有展示的夸夸','No public kudos yet')}</p>`}${action('list',tr('查看全部','View all'),'data-owner="self" data-kind="kudos"','backlink')}</section>`,'self');
+  }
+  function closeProfileDialog(){const d=document.getElementById('profile-dialog');if(d){d.close();d.remove();}document.querySelector('[data-social="menu"]')?.focus();}
+  function showProfileDialog(edit=false){
+    closeProfileDialog();
+    const d=document.createElement('dialog');d.id='profile-dialog';d.className='profile-dialog';d.dataset.noTranslate='';d.setAttribute('aria-labelledby','profile-dialog-title');
+    const title=edit?tr('编辑资料','Edit profile'):tr('个人菜单','Profile menu');
+    const rows=[['review','我的发布','My posts'],['registered','我的报名','My registrations'],['messages','我的交流','My conversations'],['privacy','隐私与交流意愿','Privacy and invitations'],['onboarding','首次加入流程','Onboarding demo']];
+    const fields=[['role',tr('职业 / 身份','Role'),80],['city',tr('城市','City'),40],['bio',tr('个人简介','Bio'),300],['interests',tr('兴趣标签（用逗号分隔，最多 6 个）','Interests (comma separated, up to 6)'),150],['topics',tr('可以聊什么','Topics to discuss'),200],['connect',tr('希望认识的同行','People to connect with'),200]];
+    d.innerHTML=`<div class="profile-dialog-heading"><h2 id="profile-dialog-title">${title}</h2>${action('close-dialog',tr('关闭','Close'))}</div>`+(edit?`<form id="profile-edit-form">${fields.map(([key,label,max])=>`<label class="field" for="edit-${key}">${label}${key==='bio'?`<textarea id="edit-${key}" maxlength="${max}" rows="3">${esc(ownProfile[key])}</textarea>`:`<input id="edit-${key}" maxlength="${max}" value="${esc(key==='interests'?ownProfile.interests.join('，'):ownProfile[key])}">`}</label>`).join('')}<p class="hint">${tr('演示资料仅保留在本次体验中。','Demo edits last for this session.')}</p><p id="profile-edit-error" class="error" role="alert"></p><div class="social-tools">${action('close-dialog',tr('取消','Cancel'),'','secondary')}<button class="primary" type="submit">${tr('保存资料','Save profile')}</button></div></form>`:`<div class="profile-menu-list">${rows.map(([route,zh,en])=>action('manage',`<span>${tr(zh,en)}</span><span aria-hidden="true">›</span>`,`data-route="${route}"`)).join('')}<button type="button" data-assist="profile">${tr('专业主页助手','Professional profile assistant')}<span aria-hidden="true">›</span></button></div>`);
+    d.addEventListener('click',e=>{if(e.target===d)closeProfileDialog();});
+    document.body.append(d);d.showModal();if(edit)d.querySelector('input').focus();
+  }
+  document.addEventListener('profile-assistant-saved',e=>{const [bio,topics,interests,connect]=e.detail;Object.assign(ownProfile,{bio,topics,connect,interests:interests.split(/[,，、\n]/).map(x=>x.trim()).filter(Boolean).slice(0,6)});});
+  document.addEventListener('submit',e=>{
+    if(e.target.id!=='profile-edit-form')return;e.preventDefault();
+    const read=key=>document.getElementById('edit-'+key).value.trim();
+    if(!read('role')||!read('city')){document.getElementById('profile-edit-error').textContent=tr('请填写职业 / 身份和城市。','Please enter your role and city.');return;}
+    const tags=[...new Set(read('interests').split(/[,，、\n]/).map(x=>x.trim()).filter(Boolean))];
+    if(tags.length>6||tags.some(x=>x.length>20)){document.getElementById('profile-edit-error').textContent=tr('最多 6 个标签，每个不超过 20 字。','Up to 6 tags, 20 characters each.');return;}
+    Object.assign(ownProfile,{role:read('role'),city:read('city'),bio:read('bio'),topics:read('topics'),connect:read('connect'),interests:tags});
+    closeProfileDialog();render();document.querySelector('[data-social="edit-profile"]')?.focus();toast(tr('资料已更新','Profile updated'));
+  });
   const profileTabs={};
   let ownLiked=false,ownComment='';
   function personalFeed(id){
@@ -47,7 +73,14 @@
     return `<div class="inset" data-no-translate><h1 class="page-title">${id==='self'?tr('收到的夸夸','Your kudos'):tr('同行的夸夸','Peer kudos')}</h1>${id!=='self'?tools(id):`<p class="hint">${tr('你决定哪些夸夸展示在主页上。待确认和已隐藏的内容仅自己可见。','Choose which kudos appear on your profile. Pending and hidden kudos are private.')}</p>`}${rows.map(k=>`<article class="kudos-card">${action('person',esc(person(k.from).name),`data-person="${k.from}"`,'kudos-author')}<p>${esc(k.text)}</p><footer>${k.status==='visible'?tr('已展示','Visible'):k.status==='pending'?tr('待你确认 · 仅自己可见','Pending · private'):tr('已隐藏 · 仅自己可见','Hidden · private')}${id==='self'?action(k.status==='visible'?'hide':'show',k.status==='visible'?tr('隐藏','Hide'):tr('展示到主页','Show on profile'),`data-index="${k.i}"`):''}</footer></article>`).join('')||`<div class="empty">${tr('还没有夸夸，一次暖心回应就能开启。','No kudos yet. A thoughtful exchange is a good start.')}</div>`}</div>`;
   }
   for(const [id,title] of [['personalPost','我的动态'],['socialConnections','关注与被关注'],['kudos','同行的夸夸'],['selfProfile','我的主页']])addScreen(id,title,'','','','','');
-  const oldBody=body,oldFoot=foot,oldGo=go,oldAct=act;
+  const oldBody=body,oldFoot=foot,oldGo=go,oldAct=act,oldPhone=phone;
+  screens.find(x=>x[0]==='me')[1]='我的主页';
+  phone=function(s,p){
+    let html=oldPhone(s,p);
+    if(!['me','selfProfile'].includes(s))return html;
+    html=html.replace(/<section class="assistant-dock"[\s\S]*?<\/section>/,'');
+    return html.replace('<span class="capsule">',`<button class="profile-menu-trigger" data-social="menu" aria-haspopup="dialog" aria-label="${tr('个人菜单','Profile menu')}">${ico('settings')}</button><span class="capsule">`);
+  };
   body=function(s,p){
     if(s==='nearProfile'&&state.peer==='lin')return body('profile',p);
     if(s==='socialConnections'){
@@ -57,13 +90,12 @@
     if(s==='kudos')return praiseList(owner);
     if(s==='personalPost')return '<div class="inset" data-no-translate><h1 class="page-title">'+tr('我的动态','My post')+'</h1><p class="bodytext personal-post-text">'+esc(state.socialPost||'')+'</p><div class="reactions">'+action('own-like',ico('heart')+' '+(ownLiked?1:0))+'</div><h3>'+tr('评论','Comments')+'</h3>'+(ownComment?'<p class="quote">陈安 · '+esc(ownComment)+'</p>':'')+'<label class="field">'+tr('参与讨论','Join the conversation')+'<textarea id="personal-comment" maxlength="500"></textarea></label>'+action('own-comment',tr('发送评论','Send comment'),'','secondary')+'</div>';
 
-    if(s==='selfProfile')return profilePage(`<div class="profile-cover"></div><div class="profile-head">${av('陈','large')}<h1>陈安</h1><p class="bodytext">深圳 · CFA 会员</p>${stats('self')}<p class="bodytext">从一次认真交流开始，找到自己的同行。</p></div><section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('self').map(k=>`<p class="quote">${esc(k.text)}</p>`).join('')||`<p>${tr('还没有展示的夸夸','No public kudos yet')}</p>`}${action('list',tr('查看全部','View all'),'data-owner="self" data-kind="kudos"','backlink')}</section>`,'self');
+    if(s==='me'||s==='selfProfile')return selfPage();
     if(s==='thanks'){
       const sent=kudos.some(k=>k.from==='self'&&k.to===target);
       return `<div class="inset" data-no-translate><h1 class="page-title">${tr('TA 哪一点打动了你？','What do you appreciate about them?')}</h1><p class="subtitle">${tr('写给','To')} ${esc(person(target).name)}</p><label class="field">${tr('夸夸TA','Send kudos')}<textarea id="kudos-text" maxlength="300" ${sent?'disabled':''} placeholder="${tr('一次耐心解答、一个有用的建议，都值得夸一夸。','A patient answer or a useful suggestion is worth celebrating.')}" rows="5">${esc(draft)}</textarea></label><label class="check"><input id="kudos-consent" type="checkbox" ${consent?'checked':''} ${sent?'disabled':''}>${tr('同意以我的姓名展示这条夸夸','Show this kudos with my name')}</label><p class="hint">${tr('最多 300 字。对方确认后，才会展示在 TA 的主页。','Up to 300 characters. Visible on their profile only after they accept.')}</p>${sent?`<div class="banner">${tr('夸夸已送达，等待 TA 确认。','Kudos sent, awaiting their approval.')}</div>`:''}<p class="error" id="kudos-error" role="alert"></p></div>`;
     }
     let html=oldBody(s,p);
-    if(s==='me')html=html.replace('<button class="banner fullwidth"',stats('self')+'<button class="banner fullwidth"').replace('data-go="profile"','data-go="selfProfile"');
     if(s==='profile')html=html.replace('<div class="inline-options">',stats('lin')+'<div class="inline-options">').replace(/<button data-act="follow">[\s\S]*?<\/button>/,tools('lin')).replace(/<section class="sectionbox"><div class="section-head" style="margin-top:0"><h3>同行的夸夸<\/h3>[\s\S]*?<\/section>/,`<section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('lin').map(k=>`<p class="quote">${esc(k.text)}</p>`).join('')}${action('list',tr('查看全部夸夸','View all kudos'),'data-owner="lin" data-kind="kudos"','backlink')}</section>`);
     if(s==='nearProfile')html=html.replace('<h3>可以聊什么</h3>',stats(state.peer)+tools(state.peer)+'<h3>可以聊什么</h3>');
     if(['profile','nearProfile'].includes(s))return profilePage(html,s==='profile'?'lin':state.peer);
@@ -71,7 +103,7 @@
   };
   foot=function(s){if(s==='thanks')return `<div class="actionbar" data-no-translate>${action('send',tr('送出夸夸','Send kudos'),kudos.some(k=>k.from==='self'&&k.to===target)?'disabled':'','primary')}</div>`;return oldFoot(s);};
   go=function(s){
-    if(['profile','nearProfile','selfProfile'].includes(state.screen)&&['post','need'].includes(s))backMap[s]=state.screen;
+    if(['me','profile','nearProfile','selfProfile'].includes(state.screen)&&['post','need'].includes(s))backMap[s]=state.screen;
     const frame=history.at(-1);
     if(frame&&state.screen===frame.to&&s===frame.from){history.pop();backMap[frame.to]=frame.back;owner=frame.owner;tab=frame.tab;state.peer=frame.peer;return oldGo(s);}
     if(s==='thanks'){target=state.screen==='nearProfile'?state.peer:state.screen==='kudos'?owner:'lin';if(target==='self')return;draft='';consent=false;backMap.thanks=state.screen;}
@@ -82,8 +114,13 @@
   document.addEventListener('input',e=>{if(e.target.id==='kudos-text')draft=e.target.value;});
   document.addEventListener('change',e=>{if(e.target.id==='kudos-consent')consent=e.target.checked;});
   document.addEventListener('click',e=>{
+    if(e.target.closest('#profile-dialog [data-assist]'))closeProfileDialog();
     const b=e.target.closest('[data-social]');if(!b){if(e.target.closest('[data-language]'))render();return;}
     const a=b.dataset.social,id=b.dataset.person;
+    if(a==='menu')showProfileDialog();
+    if(a==='edit-profile')showProfileDialog(true);
+    if(a==='close-dialog')closeProfileDialog();
+    if(a==='manage'){const route=b.dataset.route;closeProfileDialog();backMap[route]=state.screen;go(route);}
     if(a==='list'){visit(b.dataset.kind==='kudos'?'kudos':'socialConnections',()=>{owner=b.dataset.owner;tab=b.dataset.kind;});}
     if(a==='profile-tab'){profileTabs[id]=b.dataset.view;render();}
     if(a==='own-post'){visit('personalPost');}
