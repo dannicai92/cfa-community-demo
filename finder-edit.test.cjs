@@ -5,6 +5,8 @@ const assert=require('node:assert/strict');
  p.on('pageerror',e=>errors.push(e.message));
  await p.goto('file:///'+__dirname.replaceAll('\\','/')+'/index.html');
  assert.equal(await p.evaluate(()=>state.screen),'opportunities');
+ assert.equal(await p.locator('.discover-finder').count(),0);
+ assert.equal(await p.locator('.phone > .finder-fab').count(),1);
  await p.getByRole('button',{name:'帮我找',exact:true}).click();
  assert.equal(await p.evaluate(()=>state.screen),'finder');
  await p.locator('[data-finder-example="0"]').click();
@@ -13,7 +15,16 @@ const assert=require('node:assert/strict');
  assert.equal(await p.evaluate(()=>state.screen),'nearProfile');
  await p.locator('.minihead .back').click();assert.equal(await p.evaluate(()=>state.screen),'finder');
  await p.locator('.minihead .back').click();assert.equal(await p.evaluate(()=>state.screen),'opportunities');
- for(const width of [320,390,1280]){await p.setViewportSize({width,height:844});assert.equal(await p.locator('.discover-finder-button').evaluate(e=>e.scrollWidth>e.clientWidth+1),false);}
+ for(const width of [320,390,1280]){
+  await p.setViewportSize({width,height:844});
+  const discover=await p.locator('.finder-fab').boundingBox();
+  assert.equal(await p.locator('.finder-fab').evaluate(e=>{const r=e.getBoundingClientRect();return e.contains(document.elementFromPoint(r.x+r.width/2,r.y+r.height/2))}),true);
+  const nav=await p.locator('.bottomnav').boundingBox();assert.ok(discover.y+discover.height<nav.y);
+  await p.locator('.bottomnav [data-go="home"]').click();
+  const home=await p.locator('.finder-fab').boundingBox();assert.deepEqual(discover,home);
+  await p.locator('.bottomnav [data-go="opportunities"]').click();
+ }
+
  await p.setViewportSize({width:390,height:844});await p.screenshot({path:'discover-finder-preview.png'});
  await p.getByRole('button',{name:'我的',exact:true}).click();
  await p.getByRole('button',{name:'编辑资料',exact:true}).click();

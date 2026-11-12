@@ -220,11 +220,12 @@ document.getElementById('newText').closest('.inset').prepend(panel);
   phone=function(s,p){
     let html=previousPhone(s,p);
     if(s==='finder' && language==='en')html=html.replace('帮我找','Find for me');
-    if(s==='opportunities')return html.replace('<div class="scroll">',`<div class="scroll"><div class="discover-finder" data-no-translate><button type="button" data-finder-open class="discover-finder-button" aria-label="${tr('帮我找','Find for me')}">${ico('search')}<strong>${tr('帮我找','Find for me')}</strong><span>${tr('说说你想找的人或事','People, events and opportunities')}</span></button></div>`);
-    if(!['home','town'].includes(s))return html;
+    if(!['home','town','opportunities'].includes(s))return html;
     html=html.replace('<div class="phone">','<div class="phone has-finder">');
     if(s==='town')html=html.replace('</nav>','</nav><button class="fab" data-go="compose" aria-label="发布动态或需求">+</button>');
-    return html.replace('<button class="fab"',`<button class="fab finder-fab" data-finder-open aria-label="${tr('帮我找','Find for me')}" title="${tr('帮我找','Find for me')}">${ico('search')}</button><button class="fab"`);
+    const finder=`<button class="fab finder-fab" data-finder-open aria-label="${tr('帮我找','Find for me')}" title="${tr('帮我找','Find for me')}">${ico('search')}</button>`;
+    if(s==='opportunities'){const end=html.lastIndexOf('</div>');return html.slice(0,end)+finder+html.slice(end);}
+    return html.replace('<button class="fab"',finder+'<button class="fab"');
   };
   go=function(s){
     if(searchState.returnRoute && state.screen === searchState.returnRoute.screen){
