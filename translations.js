@@ -649,3 +649,25 @@ Object.assign(englishText,{
 });
 
 Object.assign(englishText, {"夸夸TA":"Send kudos", "同行的夸夸":"Peer kudos", "背景、话题与同行的夸夸":"Background, topics and peer kudos"});
+
+Object.assign(englishText, {
+  "日期与地点为演示安排。": "Dates and venues are for demonstration only.",
+  "孵化器参访：走进前海深港青年梦工场": "Incubator Visit: Qianhai Shenzhen–Hong Kong Youth Innovation and Entrepreneur Hub",
+  "走进创业孵化空间，了解创新项目与成长故事": "Explore an incubator and hear stories of innovation and growth.",
+  "深圳 · 前海深港青年梦工场": "Shenzhen · Qianhai Youth Innovation and Entrepreneur Hub",
+  "如何构建金融智能体——从数字员工到可信落地": "Building Financial AI Agents: From Digital Employees to Trusted Deployment",
+  "从场景设计到可信应用，交流金融智能体的实践路径": "Exchange practical approaches to designing and deploying trusted financial AI agents.",
+  "北京 · 金融街会员交流空间": "Beijing · Financial Street Member Lounge",
+  "会员联谊：夏日品酒之夜": "Member Social: A Summer Wine Evening",
+  "以一杯佳酿开启轻松对话，认识工作之外的彼此": "Enjoy a glass of wine and get to know one another beyond work.",
+  "深圳 · 南山海岸城品酒空间": "Shenzhen · Nanshan Coastal City Wine Lounge",
+  "名企探访：走进信维通信，解码射频赛道产业投资机遇": "Company Visit: Sunway Communication and Investment Opportunities in RF Technology",
+  "走进企业现场，交流射频技术与产业发展趋势": "Visit a company and discuss RF technology and industry trends.",
+  "深圳 · 信维通信企业展厅": "Shenzhen · Sunway Communication Exhibition Hall",
+  "新书发布会：《公募基金职场导航——来自一线的行业解码》": "Book Launch: A Career Guide to Mutual Funds — Insights from Industry Practitioners",
+  "从一线经验出发，聊聊公募基金行业与职业成长": "Discuss mutual fund careers through firsthand industry experience.",
+  "上海 · 陆家嘴阅读会客厅": "Shanghai · Lujiazui Reading Lounge",
+  "AI与投资管理的未来：结构性变革与人才发展": "AI and the Future of Investment Management: Structural Change and Talent Development",
+  "探讨 AI 如何改变投资管理，以及人才能力的新方向": "Explore how AI is changing investment management and the skills people need.",
+  "成都 · 高新区金融交流中心": "Chengdu · Hi-tech Zone Finance Exchange Center"
+});

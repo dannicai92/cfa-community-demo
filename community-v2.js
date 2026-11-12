@@ -1,12 +1,99 @@
 /* Shared content records power timeline, opportunity directory and talent market. */
 Object.assign(state,{feed:'最新',discover:'发现活动',needFilter:'全部',talentFilter:'全部',selectedNeed:'n1',selectedEvent:'e1',releaseFilter:'全部',bookWant:false,bookRead:false,sportCount:2,challenge:false,curiosityAnswer:'',curiosityInvited:false,curiositySkipped:false,editingNeed:null});
 const needs=[{id:'n1',name:'周亦宁',category:'买卖方交流',text:'正在梳理消费行业的线下调研方法，想和同样关注这个领域的同行交流：如何交叉验证一线信息？\n不涉及产品推介，线上聊半小时就好。',title:'交流消费行业的调研与信息验证',city:'深圳',region:'华南',target:'消费行业研究同行',expires:'2026-11-13',time:'2026-10-15 09:40',org:'示例研究机构',status:'approved',comments:3}, {id:'n2',name:'顾知行',category:'人才招聘',text:'我们在找一位愿意深入一线的消费行业研究员。地点深圳，欢迎有三年以上研究经验、对商业和生活都保持好奇的同行。\n如果你感兴趣，可以先聊聊团队和研究方式。',title:'消费行业研究员',city:'深圳',region:'华南',target:'3 年以上研究经验',expires:'2026-11-15',time:'2026-10-15 08:30',org:'远山研究（示例）',pay:'30–45 万元 / 年（示例）',status:'approved',comments:2},{id:'n3',name:'许嘉言',category:'找伙伴',text:'在做一个帮助研究员整理公开资料的小工具，想认识愿意一起打磨原型的产品或技术伙伴。先从一个小项目开始。',title:'寻找研究工具的产品或技术伙伴',city:'广州',region:'华南',target:'产品经理 / 开发者',expires:'2026-11-20',time:'2026-10-14 17:20',org:'个人项目（示例）',status:'approved',comments:1}];
-const events=[{id:'e1',society:'深圳协会',city:'深圳',region:'华南',title:'六个人，一杯咖啡',sub:'职业转型中的选择与取舍',day:'24',month:'OCT',date:'10 月 24 日 · 周六',time:'14:30—16:00',kind:'小型交流',fee:'AA制'}, {id:'e2',society:'北京协会',city:'北京',region:'北京',title:'研究方法交流沙龙',sub:'从信息到判断：分享研究实践',day:'31',month:'OCT',date:'10 月 31 日 · 周六',time:'14:00—16:00',kind:'专业沙龙',fee:'会员免费'}, {id:'e3',society:'上海协会',city:'上海',region:'上海',title:'会员阅读圆桌',sub:'一本书与一个新的视角',day:'07',month:'NOV',date:'11 月 7 日 · 周六',time:'14:00—15:30',kind:'阅读交流',fee:'会员免费'}, {id:'e4',society:'成都协会',city:'成都',region:'华西',title:'周末同行漫步',sub:'从城市观察，聊到生活与职业',day:'08',month:'NOV',date:'11 月 8 日 · 周日',time:'09:30—11:00',kind:'户外交流',fee:'会员免费'}];
-events.push(
-{id:'e5',society:'北京协会',city:'北京',region:'北京',title:'中国大类资产的长期回报与风险溢价',sub:'大类资产与风险溢价专题交流',day:'18',month:'AUG',date:'2026 年 8 月 18 日 · 星期二',time:'19:00–20:30',location:'北京西城区金融街',kind:'专业交流',fee:'会员免费',ended:true},
-{id:'e6',society:'上海协会',city:'上海',region:'上海',title:'Global Private Equity: Key Trends & Investor Due Diligence',sub:'全球私募股权趋势与投资者尽调',day:'30',month:'OCT',date:'2026 年 10 月 30 日 · 星期五',time:'19:00–20:30',location:'陆家嘴国际会计中心',kind:'专业交流',fee:'会员 ¥38'}
-);
-const eventOrder=['e1','e6','e2','e3','e4','e5'];events.sort((a,b)=>eventOrder.indexOf(a.id)-eventOrder.indexOf(b.id));
+// Dates and venues below are fictional prototype arrangements.
+const events=[
+  {
+    "id": "e1",
+    "society": "深圳协会",
+    "city": "深圳",
+    "region": "华南",
+    "title": "孵化器参访：走进前海深港青年梦工场",
+    "sub": "走进创业孵化空间，了解创新项目与成长故事",
+    "day": "05",
+    "month": "JUN",
+    "date": "2027 年 6 月 5 日 · 周六",
+    "time": "14:00—16:30",
+    "location": "深圳 · 前海深港青年梦工场",
+    "kind": "企业参访",
+    "fee": "会员免费"
+  },
+  {
+    "id": "e2",
+    "society": "北京协会",
+    "city": "北京",
+    "region": "北京",
+    "title": "如何构建金融智能体——从数字员工到可信落地",
+    "sub": "从场景设计到可信应用，交流金融智能体的实践路径",
+    "day": "12",
+    "month": "JUN",
+    "date": "2027 年 6 月 12 日 · 周六",
+    "time": "14:00—17:00",
+    "location": "北京 · 金融街会员交流空间",
+    "kind": "专业沙龙",
+    "fee": "会员免费"
+  },
+  {
+    "id": "e3",
+    "society": "深圳协会",
+    "city": "深圳",
+    "region": "华南",
+    "title": "会员联谊：夏日品酒之夜",
+    "sub": "以一杯佳酿开启轻松对话，认识工作之外的彼此",
+    "day": "19",
+    "month": "JUN",
+    "date": "2027 年 6 月 19 日 · 周六",
+    "time": "19:00—21:00",
+    "location": "深圳 · 南山海岸城品酒空间",
+    "kind": "会员联谊",
+    "fee": "会员免费"
+  },
+  {
+    "id": "e4",
+    "society": "深圳协会",
+    "city": "深圳",
+    "region": "华南",
+    "title": "名企探访：走进信维通信，解码射频赛道产业投资机遇",
+    "sub": "走进企业现场，交流射频技术与产业发展趋势",
+    "day": "26",
+    "month": "JUN",
+    "date": "2027 年 6 月 26 日 · 周六",
+    "time": "14:00—16:30",
+    "location": "深圳 · 信维通信企业展厅",
+    "kind": "企业参访",
+    "fee": "会员免费"
+  },
+  {
+    "id": "e5",
+    "society": "上海协会",
+    "city": "上海",
+    "region": "上海",
+    "title": "新书发布会：《公募基金职场导航——来自一线的行业解码》",
+    "sub": "从一线经验出发，聊聊公募基金行业与职业成长",
+    "day": "03",
+    "month": "JUL",
+    "date": "2027 年 7 月 3 日 · 周六",
+    "time": "14:30—16:30",
+    "location": "上海 · 陆家嘴阅读会客厅",
+    "kind": "阅读交流",
+    "fee": "会员免费"
+  },
+  {
+    "id": "e6",
+    "society": "成都协会",
+    "city": "成都",
+    "region": "华西",
+    "title": "AI与投资管理的未来：结构性变革与人才发展",
+    "sub": "探讨 AI 如何改变投资管理，以及人才能力的新方向",
+    "day": "10",
+    "month": "JUL",
+    "date": "2027 年 7 月 10 日 · 周六",
+    "time": "14:00—16:00",
+    "location": "成都 · 高新区金融交流中心",
+    "kind": "专业沙龙",
+    "fee": "会员免费"
+  }
+];
 const oldBody=body,oldFoot=foot,oldAct=act,oldFlows=flows,oldDesign=designSystem;
 function addScreen(id,title,lead,a,b,c,d){screens.push([id,title,lead,a,b,c,d])}
 screens.find(x=>x[0]==='home').splice(1,6,'动态','表达轻一点，连接自然一点。','最新 / 推荐 / 好友圈','最新按发布时间排序，推荐强调相关性，好友圈展示互相关注用户的动态。','需求只发一次','需求在动态里自然表达，在发现机会和人才市场里结构化浏览，状态同步。');
@@ -35,12 +122,12 @@ function eventDirectory(e){return `<button class="directory-card event-directory
 function currentNeed(){return needs.find(n=>n.id===state.selectedNeed)||needs[0]}function currentEvent(){return events.find(e=>e.id===state.selectedEvent)||events[0]}
 phone=function(s,preview=false){const root=['home','opportunities','town','messages','me'].includes(s),title=screens.find(x=>x[0]===s)?.[1]||'同行';return `<div class="phone"><div class="status"><span>9:41</span><span>▮▮▮ &nbsp; ◔ &nbsp; ▰</span></div><div class="minihead">${root?`<strong>${title}</strong>`:`<button class="back" data-go="${backMap[s]||'home'}">${ico('back')}${title}</button>`}<span class="capsule">••• <span style="opacity:.3">│</span> ⦿</span></div><div class="scroll">${body(s,preview)}</div>${root?`<nav class="bottomnav">${[['opportunities','compass','发现'],['home','chat','动态'],['town','home','同行里'],['messages','bell','消息'],['me','user','我的']].map(([id,ic,t])=>`<button data-go="${id}" class="${s===id?'active':''}">${ico(ic)}${t}</button>`).join('')}</nav>`:''}${s==='home'?'<button class="fab" data-go="compose" aria-label="发布动态或需求">+</button>':''}${foot(s)}</div>`};
 body=function(s,preview){switch(s){case'home':{let list=visibleNeeds();let normal=postCard().replace(/<div class="feed-validity">[\s\S]*?<\/div>/,'<div class="meta">2026-10-14 12:20 · 深圳</div>');if(state.feed==='好友圈')list=list.filter(n=>n.name==='许嘉言');let posts=list.map(n=>({time:n.time,html:demandPost(n)}));if(!state.blocked&&(state.feed!=='好友圈'||state.following))posts.push({time:'2026-10-14 12:20',html:normal});if(state.socialPost)posts.push({time:'2026-10-15 12:00',html:`<article class="card">${feedHeader('陈安',state.socialCategory||'普通动态')}<p class="bodytext">${esc(state.socialPost)}</p><div class="meta">刚刚 · ${state.city}</div></article>`});if(state.feed==='最新')posts.sort((a,b)=>b.time.localeCompare(a.time));return `<div class="feed-toolbar">${tabs(['最新','推荐','好友圈'],state.feed,'feed')}${regionButton()}</div>${state.feed==='好友圈'?'<div class="inset"><p class="hint">互相关注的同行，按发布时间查看</p></div>':''}${posts.map(p=>p.html).join('')||'<div class="empty">这里还没有动态，去认识一些同行吧。</div>'}`}
-case'opportunities':return `<div class="welcome"><div class="section-head" style="margin:0"><h1>发现新的可能。</h1>${regionButton()}</div><p class="subtitle">一场相聚，或一次有目的的连接。</p></div>${tabs(['发现活动','发现机会'],state.discover,'discover')}${state.discover==='发现活动'?`<div class="inset"><div class="section-head"><h3>协会活动</h3><span class="meta">按活动时间</span></div></div>${events.filter(e=>state.region==='全国'||e.region===state.region).map(eventDirectory).join('')||'<div class="empty">暂无活动，可切换全国查看。</div>'}<p class="hint inset">当前展示协会主办活动。</p>`:`${groupChips(['全部','人才招聘','求职','找伙伴','买卖方交流','业务合作','投融资对接'],state.needFilter,'needFilter')}<div class="inset"><button class="secondary" data-v2="newNeed">＋ 发布需求</button></div><div class="topspace">${visibleNeeds().filter(n=>state.needFilter==='全部'||n.category===state.needFilter).map(needCard).join('')||'<div class="empty">暂无符合条件的机会，试试其他类别。</div>'}</div>`}`;
+case'opportunities':return `<div class="welcome"><div class="section-head" style="margin:0"><h1>发现新的可能。</h1>${regionButton()}</div><p class="subtitle">一场相聚，或一次有目的的连接。</p></div>${tabs(['发现活动','发现机会'],state.discover,'discover')}${state.discover==='发现活动'?`<div class="inset"><div class="section-head"><h3>协会活动</h3><span class="meta">按活动时间</span></div><p class="hint">日期与地点为演示安排。</p></div>${events.filter(e=>state.region==='全国'||e.region===state.region).map(eventDirectory).join('')||'<div class="empty">暂无活动，可切换全国查看。</div>'}<p class="hint inset">当前展示协会主办活动。</p>`:`${groupChips(['全部','人才招聘','求职','找伙伴','买卖方交流','业务合作','投融资对接'],state.needFilter,'needFilter')}<div class="inset"><button class="secondary" data-v2="newNeed">＋ 发布需求</button></div><div class="topspace">${visibleNeeds().filter(n=>state.needFilter==='全部'||n.category===state.needFilter).map(needCard).join('')||'<div class="empty">暂无符合条件的机会，试试其他类别。</div>'}</div>`}`;
 case'town':return `<div class="welcome"><p class="greeting">有共同背景，也有不同的世界</p><h1>欢迎来到同行里。</h1><p class="subtitle">一起做事，也一起认真生活。</p></div><div class="town-grid">${[['talent','compass','人才市场','下一步，和谁一起走','mint'],['research','chat','投研交流室','买方 × 卖方 · 专业合作','sand'],['capital','send','投融资对接厅','项目 × 资本 · 融资合作','lavender'],['books','bookmark','同行荐书','一本书，一个新视角','lavender'],['sports','heart','运动场','按自己的节奏动起来','peach'],['curiosity','chat','好奇档案','发现彼此的另一面','wide-tile']].map(([g,i,t,d,c])=>`<button data-go="${g}" class="town-tile ${c}">${ico(i)}<h3>${t}</h3><p>${d}</p><span>进去看看 ↗</span></button>`).join('')}</div><div class="inset"><div class="section-head"><h3>今天可以做的一件小事</h3></div><button class="daily-question" data-go="curiosity"><span class="eyebrow">好奇档案 · 本期问题</span><h3>如果不做现在的工作，<br>你想尝试什么？</h3><span>留下一句回答 →</span></button></div>`;
 case'talent':return `<div class="welcome"><h1>下一步，和谁一起走？</h1><p class="subtitle">寻找工作机会，也寻找一起做事的伙伴。</p>${regionButton()}</div>${groupChips(['全部','人才招聘','求职','找伙伴'],state.talentFilter,'talentFilter')}<div class="inset">${vbutton('＋ 发布职业需求','newTalent','','secondary')}</div><div class="topspace">${visibleNeeds().filter(n=>['人才招聘','求职','找伙伴'].includes(n.category)&&(state.talentFilter==='全部'||n.category===state.talentFilter)).map(needCard).join('')||'<div class="empty">暂时没有这一类机会。<br>发布需求，让同行了解你在寻找什么。</div>'}</div>`;
 case'need':{let n=currentNeed();return `<div class="inset">${feedHeader(n.name,n.category,'blue')}<h1 class="page-title">${esc(n.title)}</h1>${n.status!=='approved'?`<div class="banner amber">${n.status==='closed'?'需求已关闭，停止分发':'审核中，暂不对社区展示'}</div>`:''}<p class="bodytext">${esc(n.text).replace(/\n/g,'<br>')}</p>${[['所在城市',n.city],['发布主体',n.org],['希望联系',n.target],...(n.pay?[['报酬范围',n.pay]]:[]),['有效期至',n.expires]].map(([k,v])=>`<div class="row"><span>${k}</span><small>${esc(v)}</small></div>`).join('')}<p class="hint">身份核验不代表机构或业务授权；本页内容均为示例。</p><div class="section-head"><h3>讨论</h3><span class="meta">${n.comments} 条</span></div>${n.reply?`<div class="banner">陈安：${esc(n.reply)}</div>`:''}${field('回应这个话题','<textarea id="needReply" placeholder="说说你的相关经验或想了解的问题"></textarea>')}${vbutton('发布评论','needReply','','secondary')}${n.mine?`<div class="inline-options topspace"><button data-v2="editNeed">编辑需求</button><button data-v2="closeNeed">关闭需求</button></div>`:''}</div>`}
-case'event':{let e=currentEvent();return `<div class="poster event-poster"><span class="small">${e.society} · 会员活动</span><h2>${e.title}</h2>${ico('coffee')}</div><div class="inset"><span class="tag topspace">${e.society}主办</span><h1 class="page-title">${e.sub}</h1><div class="row"><span>${e.date}</span><small>${e.time}</small></div><div class="row"><span>${e.city}</span><small>${e.location||'确认报名后查看具体地址'}</small></div><div class="row"><span>参与费用</span><small>${e.fee}</small></div><p class="bodytext">围绕活动主题与同行交流，具体安排以主办协会通知为准。</p><div class="banner">由${e.society}确认报名。参与者名单不公开，活动不安排产品推介。</div><p class="hint">${e.ended?'本场活动已结束。':'临时变动请联系主办协会。'}费用为暂定示例，以主办协会正式通知为准。</p></div>`}
-case'registered':{let e=currentEvent();return oldBody(s,preview).replaceAll('职业转型中的选择与取舍',e.sub).replaceAll('周六 14:30—16:00 · 深圳福田',e.date+' '+e.time+' · '+e.city).replaceAll('组织者',e.society).replace('福田会员交流空间',e.location||e.city+'会员交流空间').replace('<b>24</b>OCT','<b>'+e.day+'</b>'+e.month)}
+case'event':{let e=currentEvent();return `<div class="poster event-poster"><span class="small">${e.society} · 会员活动</span><h2>${e.title}</h2>${ico('coffee')}</div><div class="inset"><span class="tag topspace">${e.society}主办</span><h1 class="page-title">${e.sub}</h1><div class="row"><span>${e.date}</span><small>${e.time}</small></div><div class="row"><span>${e.city}</span><small>${e.location||'确认报名后查看具体地址'}</small></div><div class="row"><span>参与费用</span><small>${e.fee}</small></div><p class="hint">日期与地点为演示安排。</p><p class="bodytext">围绕活动主题与同行交流，具体安排以主办协会通知为准。</p><div class="banner">由${e.society}确认报名。参与者名单不公开，活动不安排产品推介。</div><p class="hint">${e.ended?'本场活动已结束。':'临时变动请联系主办协会。'}费用为暂定示例，以主办协会正式通知为准。</p></div>`}
+case'registered':{let e=currentEvent();return oldBody(s,preview).replaceAll('职业转型中的选择与取舍',e.title).replaceAll('周六 14:30—16:00 · 深圳福田',e.date+' '+e.time+' · '+e.city).replaceAll('组织者',e.society).replace('福田会员交流空间',e.location||e.city+'会员交流空间').replace('<b>24</b>OCT','<b>'+e.day+'</b>'+e.month)}
 case'compose':return newCompose();
 case'review':{let pending=needs.find(n=>n.mine&&n.status==='pending');return `${pending?`<div class="inset"><div class="banner">${esc(pending.title)}<br>等待审核；通过后同步展示在动态和发现机会。</div><button class="secondary" data-v2="approveNeed">演示审核通过</button><button class="backlink" data-need="${pending.id}">查看我的需求 →</button></div>`:''}${needs.some(n=>n.mine)?"":oldBody(s,preview)}<div class="inset"><div class="section-head"><h3>我提交的需求</h3></div>${needs.filter(n=>n.mine).map(n=>`<button class="row fullwidth" data-need="${n.id}"><span>${esc(n.title)}</span><small>${({pending:'审核中',approved:'已发布',closed:'已关闭'})[n.status]}</small></button>`).join('')}</div>`}
 case'release':return releaseHome();case'releaseDetail':return releaseDetail();case'releaseCompose':return releaseCompose();case'books':return booksHome();case'bookDetail':return bookDetail();case'recommendBook':return bookCompose();case'sports':return sportsHome();case'curiosity':return curiosityHome();case'curiosityInvite':return `<div class="inset"><h1 class="page-title">你会好奇谁的答案？</h1><p class="subtitle">如果不做现在的工作，你想尝试什么？</p>${['林知远','许嘉言','周亦宁'].map(n=>`<button class="row fullwidth" data-v2="pickCurious" data-name="${n}"><span>${n}</span><small>${state.curiosityPerson===n?'✓':'选择'}</small></button>`).join('')}<div class="banner">每次邀请一位同行，对方可以跳过。不会公开展示未回答名单。</div>${state.curiosityInvited?'<p class="success">邀请已发送（演示），等待对方自愿参与。</p>':''}</div>`;
