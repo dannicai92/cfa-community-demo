@@ -30,7 +30,7 @@ const assert=require('node:assert/strict');
  await p.getByRole('button',{name:'编辑资料',exact:true}).click();
  assert.equal(await p.locator('#profile-dialog').count(),0);
  await p.locator('#edit-bio').fill('草稿会保留 Draft preserved');
- await p.locator('[data-language-menu]').click();await p.locator('[data-language="en"]').click();
+ await p.locator('[data-language="en"]').click();
  assert.equal(await p.locator('#edit-bio').inputValue(),'草稿会保留 Draft preserved');
  await p.locator('#edit-role').fill('');await p.getByRole('button',{name:'Save profile',exact:true}).click();
  assert.match(await p.locator('#profile-edit-error').innerText(),/role/);
@@ -40,7 +40,7 @@ const assert=require('node:assert/strict');
  assert.equal(await p.locator('#inline-profile-editor').count(),0);assert.match(await p.locator('.profile-head').innerText(),/草稿会保留/);
  await p.getByRole('button',{name:'Edit profile',exact:true}).click();
  for(const width of [320,390,1280]){await p.setViewportSize({width,height:844});assert.equal(await p.locator('#inline-profile-editor').evaluate(e=>e.scrollWidth>e.clientWidth+1),false);}
- await p.locator('[data-language-menu]').click();await p.locator('[data-language="zh"]').click();
+ await p.locator('[data-language="zh"]').click();
  await p.setViewportSize({width:390,height:844});await p.locator('#inline-profile-editor').scrollIntoViewIfNeeded();await p.screenshot({path:'inline-edit-preview.png'});
  assert.deepEqual(errors,[]);await b.close();console.log('PASS: Discover finder search/results/back, inline edit draft preservation, validation and responsive layouts');
 })().catch(e=>{console.error(e);process.exit(1)});

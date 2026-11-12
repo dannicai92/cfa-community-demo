@@ -1,13 +1,11 @@
 /* Flexible bilingual layouts: text grows vertically, never over neighboring controls. */
-.capsule{flex-shrink:0;align-items:center;gap:4px;padding:0 7px}
-.capsule button{min-width:36px;min-height:36px;padding:4px;letter-spacing:2px}
+.capsule.language-switch{flex-shrink:0;display:flex;align-items:center;gap:3px;padding:3px;border:1px solid #06005A24;background:#FFFFFF;border-radius:22px}
+.language-switch button{min-width:39px;min-height:36px;padding:6px 9px;border-radius:18px;font-size:12px;font-weight:600;line-height:1;letter-spacing:.3px;color:#626279;background:transparent}
+.language-switch button[aria-pressed=true]{background:var(--ink);color:#FFFFFF}
+.language-switch button:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .minihead{gap:8px;height:auto;min-height:51px}
 .minihead>.back,.minihead>strong{min-width:0;overflow-wrap:anywhere}
 .minihead .icon{flex-shrink:0}
-#language-menu{position:absolute;z-index:100;right:12px;top:81px;width:min(250px,calc(100% - 24px));padding:18px;background:#fff;border:1px solid var(--line);box-shadow:0 8px 32px #06005a30;border-radius:14px}
-#language-menu strong{display:block;margin-bottom:12px}
-#language-menu button{display:flex;justify-content:space-between;align-items:center;width:100%;min-height:44px;padding:10px 12px;border-radius:8px;text-align:left}
-#language-menu [aria-pressed=true]{background:var(--pale);font-weight:700}
 .phone button,.phone h1,.phone h2,.phone h3,.phone p,.phone small{overflow-wrap:anywhere}
 .phone input,.phone textarea,.phone select{max-width:100%;min-width:0}
 .phone .row{gap:12px}.phone .row>*{min-width:0}
@@ -30,3 +28,5 @@ html[lang=en] .brand{letter-spacing:0;font-size:21px}
 @media(max-width:380px){html[lang=en] .town-grid{gap:10px;padding-left:14px;padding-right:14px}html[lang=en] .town-tile{padding:16px}html[lang=en] .feed-toolbar .tabs{gap:10px}html[lang=en] .feed-toolbar .tabs button{font-size:12px}}
 
 .town-grid .wide-tile{grid-column:auto}
+
+.welcome .section-head .location{flex-shrink:0;white-space:nowrap}

@@ -671,3 +671,13 @@ Object.assign(englishText, {
   "探讨 AI 如何改变投资管理，以及人才能力的新方向": "Explore how AI is changing investment management and the skills people need.",
   "成都 · 高新区金融交流中心": "Chengdu · Hi-tech Zone Finance Exchange Center"
 });
+
+Object.assign(englishText, {
+ 'CFA 会员':'CFA member',
+ '从一次认真交流开始，找到自己的同行。':'Find your community through thoughtful conversations.',
+ '关注与被关注':'Following and followers',
+ '总能认真听完别人的问题，再分享具体的建议。和你交流很舒服。':'You always listen carefully before offering practical advice. Talking with you feels easy.',
+ '谢谢你分享阅读笔记，让我发现了不少新的视角。':'Thank you for sharing your reading notes. They opened up new perspectives for me.',
+ '那次交流帮我把职业转型的问题拆得更具体，也少了一些焦虑。':'Our conversation helped me break down my career transition into practical steps and feel less anxious.',
+ '很喜欢你对行业问题的好奇心，期待下次交流！':'I appreciate your curiosity about the industry. Looking forward to our next conversation!'
+});

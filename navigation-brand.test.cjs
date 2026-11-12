@@ -31,7 +31,7 @@ const assert=require('node:assert/strict');
  await p.locator('.minihead .back').click();assert.equal(await p.evaluate(()=>state.screen),'me');
  await p.setViewportSize({width:390,height:844});await p.evaluate(()=>go('profile'));
  await p.screenshot({path:'community-navigation-preview.png'});
- await p.locator('[data-language-menu]').click();await p.locator('[data-language="en"]').click();
+ await p.locator('[data-language="en"]').click();
  assert.equal(await p.locator('.brand').innerText(),'Community');assert.match(await p.title(),/^Community/);
  assert.deepEqual(errors,[]);await b.close();console.log('PASS: embedded Azo Sans, Community identity, profile navigation hit targets at 3 widths, real profile entry and clean return history');
 })().catch(e=>{console.error(e);process.exit(1)});

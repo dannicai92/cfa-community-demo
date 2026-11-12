@@ -207,11 +207,14 @@ document.getElementById('newText').closest('.inset').prepend(panel);
   }
   const kindLabel = kind => ({peer:tr('同行','Peer'),need:tr('需求','Request'),event:tr('活动','Event'),book:tr('荐书','Book')})[kind];
   function finderBody() {
-    const results = searchState.query ? find(searchState.query) : [];
+    const results = (searchState.query ? find(searchState.query) : []).map(row=>{
+      const authored=row.kind==='need'&&needs.find(n=>n.id===row.id)?.mine;
+      return language==='en'&&!authored?{...row,title:translateText(row.title),text:translateText(row.text),meta:translateText(row.meta)}:row;
+    });
     const answer = results.length
       ? tr(`找到了 ${results.length} 条相关内容。可以先看看「${results[0].title}」，下面的卡片可打开原内容，了解详情或发起交流。`, `Found ${results.length} relevant results. Start with “${results[0].title}”. Open a card to view the original content or connect.`)
       : tr('当前范围内没有找到匹配内容。试试调整城市或关键词，例如“消费研究同行”“上海读书活动”；也可以返回首页切换地区。','No matching content in the current scope. Try a different city or topic, such as consumer research peers or reading events in Shanghai, or change the region on Home.');
-    return `<div class="finder-page" data-no-translate><h1 class="page-title">${tr('你想找什么？','What are you looking for?')}</h1><p class="subtitle">${tr('用一句话，说说你想认识的人或想参与的事。','Describe the people or opportunities you are looking for.')}</p><span class="tag">${tr('模拟 AI · 未接入大模型','Simulated AI · No language model connected')}</span><p class="hint">${tr('基于当前可见的示例内容进行本地规则匹配；只总结已找到的内容，不搜索私人消息。查找范围：','Local rule matching over visible demo content; summaries use found records only. Private messages are excluded. Scope: ')}${esc(state.region === '全国' ? tr('全国','Nationwide') : state.region)}</p><form id="finder-form"><label class="finder-label" for="finder-query">${tr('告诉我你的想法','Describe what you need')}</label><textarea id="finder-query" maxlength="300" placeholder="${tr('例如：想找深圳做消费研究的同行','Example: Find consumer research peers in Shenzhen')}">${esc(searchState.draft)}</textarea><div class="finder-examples">${examples.map((example,i)=>`<button type="button" data-finder-example="${i}">${tr(...example)}</button>`).join('')}</div><p class="error" role="alert">${esc(searchState.error)}</p><button class="primary" type="submit">${tr('帮我找','Find for me')}</button></form>${searchState.query ? `<section class="finder-answer" role="status"><h3>${tr('查找回答（模拟）','Search answer (simulated)')}</h3><p class="bodytext">${esc(answer)}</p><p class="hint">${tr('你的描述：','Your request: ')}${esc(searchState.query)}</p></section><section aria-label="${tr('相关内容','Related content')}">${results.map(row=>`<button class="finder-result" data-finder-result="${esc(row.key)}"><span class="tag">${kindLabel(row.kind)}</span><h3>${esc(row.title)}</h3><p>${esc(row.text)}</p><small class="meta">${esc(row.meta)}</small><footer>${tr('查看原内容 →','View original →')}</footer></button>`).join('')}</section>` : ''}</div>`;
+    return `<div class="finder-page" data-no-translate><h1 class="page-title">${tr('你想找什么？','What are you looking for?')}</h1><p class="subtitle">${tr('用一句话，说说你想认识的人或想参与的事。','Describe the people or opportunities you are looking for.')}</p><span class="tag">${tr('模拟 AI · 未接入大模型','Simulated AI · No language model connected')}</span><p class="hint">${tr('基于当前可见的示例内容进行本地规则匹配；只总结已找到的内容，不搜索私人消息。查找范围：','Local rule matching over visible demo content; summaries use found records only. Private messages are excluded. Scope: ')}${esc(state.region === '全国' ? tr('全国','Nationwide') : language==='en'?translateText(state.region):state.region)}</p><form id="finder-form"><label class="finder-label" for="finder-query">${tr('告诉我你的想法','Describe what you need')}</label><textarea id="finder-query" maxlength="300" placeholder="${tr('例如：想找深圳做消费研究的同行','Example: Find consumer research peers in Shenzhen')}">${esc(searchState.draft)}</textarea><div class="finder-examples">${examples.map((example,i)=>`<button type="button" data-finder-example="${i}">${tr(...example)}</button>`).join('')}</div><p class="error" role="alert">${esc(searchState.error)}</p><button class="primary" type="submit">${tr('帮我找','Find for me')}</button></form>${searchState.query ? `<section class="finder-answer" role="status"><h3>${tr('查找回答（模拟）','Search answer (simulated)')}</h3><p class="bodytext">${esc(answer)}</p><p class="hint">${tr('你的描述：','Your request: ')}${esc(searchState.query)}</p></section><section aria-label="${tr('相关内容','Related content')}">${results.map(row=>`<button class="finder-result" data-finder-result="${esc(row.key)}"><span class="tag">${kindLabel(row.kind)}</span><h3>${esc(row.title)}</h3><p>${esc(row.text)}</p><small class="meta">${esc(row.meta)}</small><footer>${tr('查看原内容 →','View original →')}</footer></button>`).join('')}</section>` : ''}</div>`;
   }
   addScreen('finder','帮我找','用一句话查找同行与内容。','自然语言查找','仅匹配可见示例内容','结果有来源','打开原内容继续交流');
   backMap.finder = 'town';
@@ -258,11 +261,7 @@ document.getElementById('newText').closest('.inset').prepend(panel);
       if(record.kind==='book'){state.bookIndex=Number(record.id);state.bookWant=false;state.bookRead=false;state.bookThought='';}
       searchState.returnRoute={screen,previous:backMap[screen]};backMap[screen]='finder';go(screen);
     }
-    if(button.hasAttribute('data-language')){
-      if(state.screen==='finder')render();
-      document.querySelectorAll('[data-finder-open]').forEach(el=>{el.title=tr('帮我找','Find for me');el.setAttribute('aria-label',el.title);});
-      document.querySelectorAll('[data-assist="need"]').forEach(el=>{el.textContent=tr('需求助手','Request assistant');});
-    }
+
   });
 })();
 </script>

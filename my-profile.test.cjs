@@ -50,7 +50,7 @@ const assert=require('node:assert/strict');
  }
  await p.setViewportSize({width:390,height:844});
  await p.locator('#toast').evaluate(e=>e.classList.remove('show'));await p.screenshot({path:'my-profile-preview.png'});
- await p.locator('[data-language-menu]').click();await p.locator('[data-language="en"]').click();
+ await p.locator('[data-language="en"]').click();
  assert.equal(await p.getByRole('button',{name:'Edit profile',exact:true}).count(),1);
  await p.getByRole('button',{name:'Profile menu',exact:true}).click();
  assert.match(await p.locator('#profile-dialog').innerText(),/My posts/);

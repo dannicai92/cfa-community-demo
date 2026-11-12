@@ -2,6 +2,11 @@
 (() => {
   const tr = (zh, en) => typeof language !== 'undefined' && language === 'en' ? en : zh;
   const ownProfile={name:'陈安',role:'CFA 会员',city:'深圳',bio:'从一次认真交流开始，找到自己的同行。',interests:[],topics:'',connect:''};
+  const demoText = value => esc(language==='en'?translateText(value):value);
+  const editedProfileFields=new Set();
+  const profileText = key => editedProfileFields.has(key)?esc(ownProfile[key]):demoText(ownProfile[key]);
+  const personText = (id,key) => id==='self'?profileText(key):demoText(peers[id][key]);
+  const kudosText = k => k.from==='self'?esc(k.text):demoText(k.text);
   const person = id => id === 'self' ? ownProfile : peers[id];
   const edges = new Set(['self:xu','zhou:self','lin:self','lin:xu','zhou:lin','xu:lin']);
   const kudos = [
@@ -27,7 +32,7 @@
   }
   function selfPage(){
     const p=ownProfile;
-    const html=profilePage(`<div class="profile-cover"></div><div class="profile-head" data-no-translate>${av('陈','large')}<h1>${esc(p.name)} <button class="verified profile-verification" data-social="verify" aria-label="${tr('查看身份核验说明','View verification details')}">${tr('身份已核验','Identity verified')}</button></h1>${p.interests.length?`<div class="profile-interests">${p.interests.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>`:''}<p class="bodytext">${esc(p.role)} · ${esc(p.city)}</p><p class="bodytext personal-post-text">${esc(p.bio)}</p>${stats('self')}<div class="social-tools">${action('edit-profile',tr('编辑资料','Edit profile'),'','social-follow')}</div><div class="banner">${state.acceptInvites?tr('欢迎同行交流','Open to peer conversations'):tr('暂不接受邀请','Not accepting invitations')}</div></div><section class="sectionbox" data-no-translate><h3>${tr('关于我','About me')}</h3><p class="bodytext personal-post-text">${esc(p.bio)}</p>${p.topics?`<h3>${tr('可以聊什么','Topics to discuss')}</h3><p class="bodytext">${esc(p.topics)}</p>`:''}${p.connect?`<h3>${tr('希望认识','People to connect with')}</h3><p class="bodytext">${esc(p.connect)}</p>`:''}</section><section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('self').map(k=>`<p class="quote">${esc(k.text)}</p>`).join('')||`<p>${tr('还没有展示的夸夸','No public kudos yet')}</p>`}${action('list',tr('查看全部','View all'),'data-owner="self" data-kind="kudos"','backlink')}</section>`,'self');
+    const html=profilePage(`<div class="profile-cover"></div><div class="profile-head" data-no-translate>${av(tr('陈','C'),'large')}<h1>${demoText(p.name)} <button class="verified profile-verification" data-social="verify" aria-label="${tr('查看身份核验说明','View verification details')}">${tr('身份已核验','Identity verified')}</button></h1>${p.interests.length?`<div class="profile-interests">${p.interests.map(x=>`<span class="tag">${esc(x)}</span>`).join('')}</div>`:''}<p class="bodytext">${profileText('role')} · ${profileText('city')}</p><p class="bodytext personal-post-text">${profileText('bio')}</p>${stats('self')}<div class="social-tools">${action('edit-profile',tr('编辑资料','Edit profile'),'','social-follow')}</div><div class="banner">${state.acceptInvites?tr('欢迎同行交流','Open to peer conversations'):tr('暂不接受邀请','Not accepting invitations')}</div></div><section class="sectionbox" data-no-translate><h3>${tr('关于我','About me')}</h3><p class="bodytext personal-post-text">${profileText('bio')}</p>${p.topics?`<h3>${tr('可以聊什么','Topics to discuss')}</h3><p class="bodytext">${profileText('topics')}</p>`:''}${p.connect?`<h3>${tr('希望认识','People to connect with')}</h3><p class="bodytext">${profileText('connect')}</p>`:''}</section><section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('self').map(k=>`<p class="quote">${kudosText(k)}</p>`).join('')||`<p>${tr('还没有展示的夸夸','No public kudos yet')}</p>`}${action('list',tr('查看全部','View all'),'data-owner="self" data-kind="kudos"','backlink')}</section>`,'self');
     return editDraft?html.replace('<div class="profile-content-tabs"',profileForm()+'<div class="profile-content-tabs"'):html;
   }
   function closeProfileDialog(){const d=document.getElementById('profile-dialog');if(d){d.close();d.remove();}document.querySelector('[data-social="menu"]')?.focus();}
@@ -40,13 +45,14 @@
     d.addEventListener('click',e=>{if(e.target===d)closeProfileDialog();});
     document.body.append(d);d.showModal();
   }
-  document.addEventListener('profile-assistant-saved',e=>{const [bio,topics,interests,connect]=e.detail;Object.assign(ownProfile,{bio,topics,connect,interests:interests.split(/[,，、\n]/).map(x=>x.trim()).filter(Boolean).slice(0,6)});});
+  document.addEventListener('profile-assistant-saved',e=>{const [bio,topics,interests,connect]=e.detail;['bio','topics','interests','connect'].forEach(key=>editedProfileFields.add(key));Object.assign(ownProfile,{bio,topics,connect,interests:interests.split(/[,，、\n]/).map(x=>x.trim()).filter(Boolean).slice(0,6)});});
   document.addEventListener('submit',e=>{
     if(e.target.id!=='profile-edit-form')return;e.preventDefault();
     const read=key=>document.getElementById('edit-'+key).value.trim();
     if(!read('role')||!read('city')){document.getElementById('profile-edit-error').textContent=tr('请填写职业 / 身份和城市。','Please enter your role and city.');return;}
     const tags=[...new Set(read('interests').split(/[,，、\n]/).map(x=>x.trim()).filter(Boolean))];
     if(tags.length>6||tags.some(x=>x.length>20)){document.getElementById('profile-edit-error').textContent=tr('最多 6 个标签，每个不超过 20 字。','Up to 6 tags, 20 characters each.');return;}
+    ['role','city','bio','topics','connect'].forEach(key=>{if(read(key)!==ownProfile[key])editedProfileFields.add(key);});
     Object.assign(ownProfile,{role:read('role'),city:read('city'),bio:read('bio'),topics:read('topics'),connect:read('connect'),interests:tags});
     editDraft=null;render();document.querySelector('[data-social="edit-profile"]')?.focus();toast(tr('资料已更新','Profile updated'));
   });
@@ -54,7 +60,7 @@
   let ownLiked=false,ownComment='';
   function personalFeed(id){
     const cards=[];
-    if(id==='self'&&state.socialPost)cards.push(`<article class="card" data-no-translate><div class="author">${av('陈')}<div><strong>陈安</strong><div class="meta">${tr('刚刚','Just now')}</div></div></div>${action('own-post',`<p class="bodytext">${esc(state.socialPost)}</p>`,'','profile-post-copy')}<div class="reactions">${action('own-like',ico('heart')+' '+(ownLiked?1:0),`aria-pressed="${ownLiked}"`)}${action('own-post',ico('chat')+' '+(ownComment?1:0))}</div></article>`);
+    if(id==='self'&&state.socialPost)cards.push(`<article class="card" data-no-translate><div class="author">${av(tr('陈','C'))}<div><strong>${demoText('陈安')}</strong><div class="meta">${tr('刚刚','Just now')}</div></div></div>${action('own-post',`<p class="bodytext">${esc(state.socialPost)}</p>`,'','profile-post-copy')}<div class="reactions">${action('own-like',ico('heart')+' '+(ownLiked?1:0),`aria-pressed="${ownLiked}"`)}${action('own-post',ico('chat')+' '+(ownComment?1:0))}</div></article>`);
     visibleNeeds().filter(n=>n.name===person(id).name).sort((a,b)=>b.time.localeCompare(a.time)).forEach(n=>cards.push(demandPost(n)));
     if(id==='lin'&&!state.blocked)cards.push(postCard().replace(/<div class="feed-validity">[\s\S]*?<\/div>/,'<div class="meta">2026-10-14 · 深圳</div>').replace(`${ico('chat')} 8`,`${ico('chat')} ${state.comment?9:8}`));
     return `<section class="personal-feed" aria-label="${tr('个人动态','Personal posts')}">${cards.join('')||`<div class="empty" data-no-translate>${id==='self'?tr('你的第一条动态，从一个想法开始。','Your first post starts with a thought.'):tr('TA 还没有发布动态。','No posts yet.')}${id==='self'?'<button class="backlink" data-go="compose">'+tr('发一条动态','Write a post')+'</button>':''}</div>`}</section>`;
@@ -75,7 +81,7 @@
   }
   function praiseList(id){
     const rows=kudos.map((k,i)=>({...k,i})).filter(k=>k.to===id&&(k.status==='visible'||id==='self'));
-    return `<div class="inset" data-no-translate><h1 class="page-title">${id==='self'?tr('收到的夸夸','Your kudos'):tr('同行的夸夸','Peer kudos')}</h1>${id!=='self'?tools(id):`<p class="hint">${tr('你决定哪些夸夸展示在主页上。待确认和已隐藏的内容仅自己可见。','Choose which kudos appear on your profile. Pending and hidden kudos are private.')}</p>`}${rows.map(k=>`<article class="kudos-card">${action('person',esc(person(k.from).name),`data-person="${k.from}"`,'kudos-author')}<p>${esc(k.text)}</p><footer>${k.status==='visible'?tr('已展示','Visible'):k.status==='pending'?tr('待你确认 · 仅自己可见','Pending · private'):tr('已隐藏 · 仅自己可见','Hidden · private')}${id==='self'?action(k.status==='visible'?'hide':'show',k.status==='visible'?tr('隐藏','Hide'):tr('展示到主页','Show on profile'),`data-index="${k.i}"`):''}</footer></article>`).join('')||`<div class="empty">${tr('还没有夸夸，一次暖心回应就能开启。','No kudos yet. A thoughtful exchange is a good start.')}</div>`}</div>`;
+    return `<div class="inset" data-no-translate><h1 class="page-title">${id==='self'?tr('收到的夸夸','Your kudos'):tr('同行的夸夸','Peer kudos')}</h1>${id!=='self'?tools(id):`<p class="hint">${tr('你决定哪些夸夸展示在主页上。待确认和已隐藏的内容仅自己可见。','Choose which kudos appear on your profile. Pending and hidden kudos are private.')}</p>`}${rows.map(k=>`<article class="kudos-card">${action('person',personText(k.from,'name'),`data-person="${k.from}"`,'kudos-author')}<p>${kudosText(k)}</p><footer>${k.status==='visible'?tr('已展示','Visible'):k.status==='pending'?tr('待你确认 · 仅自己可见','Pending · private'):tr('已隐藏 · 仅自己可见','Hidden · private')}${id==='self'?action(k.status==='visible'?'hide':'show',k.status==='visible'?tr('隐藏','Hide'):tr('展示到主页','Show on profile'),`data-index="${k.i}"`):''}</footer></article>`).join('')||`<div class="empty">${tr('还没有夸夸，一次暖心回应就能开启。','No kudos yet. A thoughtful exchange is a good start.')}</div>`}</div>`;
   }
   for(const [id,title] of [['personalPost','我的动态'],['socialConnections','关注与被关注'],['kudos','同行的夸夸'],['selfProfile','我的主页']])addScreen(id,title,'','','','','');
   const oldBody=body,oldFoot=foot,oldGo=go,oldAct=act,oldPhone=phone;
@@ -97,18 +103,18 @@
     if(s==='nearProfile'&&state.peer==='lin')return body('profile',p);
     if(s==='socialConnections'){
       const ids=related(owner,tab);
-      return `<div class="inset" data-no-translate><h1 class="page-title">${esc(person(owner).name)}</h1><div class="social-tabs">${['following','followers'].map(kind=>action('tab',kind==='following'?tr('关注','Following'):tr('被关注','Followers'),`data-kind="${kind}" aria-pressed="${tab===kind}"`,tab===kind?'active':'')).join('')}</div>${ids.map(id=>`<div class="social-person">${action('person',`<span class="avatar">${esc(person(id).name[0])}</span><span><strong>${esc(person(id).name)}</strong><small>${esc(person(id).role)} · ${esc(person(id).city)}</small></span>`,`data-person="${id}"`,'social-person-link')}${id==='self'?`<span>${tr('我','Me')}</span>`:follow(id)}</div>`).join('')||`<div class="empty">${tr('这里暂时还没有同行。','No peers here yet.')}</div>`}</div>`;
+      return `<div class="inset" data-no-translate><h1 class="page-title">${personText(owner,'name')}</h1><div class="social-tabs">${['following','followers'].map(kind=>action('tab',kind==='following'?tr('关注','Following'):tr('被关注','Followers'),`data-kind="${kind}" aria-pressed="${tab===kind}"`,tab===kind?'active':'')).join('')}</div>${ids.map(id=>`<div class="social-person">${action('person',`<span class="avatar">${demoText(person(id).name[0])}</span><span><strong>${personText(id,'name')}</strong><small>${personText(id,'role')} · ${personText(id,'city')}</small></span>`,`data-person="${id}"`,'social-person-link')}${id==='self'?`<span>${tr('我','Me')}</span>`:follow(id)}</div>`).join('')||`<div class="empty">${tr('这里暂时还没有同行。','No peers here yet.')}</div>`}</div>`;
     }
     if(s==='kudos')return praiseList(owner);
-    if(s==='personalPost')return '<div class="inset" data-no-translate><h1 class="page-title">'+tr('我的动态','My post')+'</h1><p class="bodytext personal-post-text">'+esc(state.socialPost||'')+'</p><div class="reactions">'+action('own-like',ico('heart')+' '+(ownLiked?1:0))+'</div><h3>'+tr('评论','Comments')+'</h3>'+(ownComment?'<p class="quote">陈安 · '+esc(ownComment)+'</p>':'')+'<label class="field">'+tr('参与讨论','Join the conversation')+'<textarea id="personal-comment" maxlength="500"></textarea></label>'+action('own-comment',tr('发送评论','Send comment'),'','secondary')+'</div>';
+    if(s==='personalPost')return '<div class="inset" data-no-translate><h1 class="page-title">'+tr('我的动态','My post')+'</h1><p class="bodytext personal-post-text">'+esc(state.socialPost||'')+'</p><div class="reactions">'+action('own-like',ico('heart')+' '+(ownLiked?1:0))+'</div><h3>'+tr('评论','Comments')+'</h3>'+(ownComment?'<p class="quote">'+demoText('陈安')+' · '+esc(ownComment)+'</p>':'')+'<label class="field">'+tr('参与讨论','Join the conversation')+'<textarea id="personal-comment" maxlength="500"></textarea></label>'+action('own-comment',tr('发送评论','Send comment'),'','secondary')+'</div>';
 
     if(s==='me'||s==='selfProfile')return selfPage();
     if(s==='thanks'){
       const sent=kudos.some(k=>k.from==='self'&&k.to===target);
-      return `<div class="inset" data-no-translate><h1 class="page-title">${tr('TA 哪一点打动了你？','What do you appreciate about them?')}</h1><p class="subtitle">${tr('写给','To')} ${esc(person(target).name)}</p><label class="field">${tr('夸夸TA','Send kudos')}<textarea id="kudos-text" maxlength="300" ${sent?'disabled':''} placeholder="${tr('一次耐心解答、一个有用的建议，都值得夸一夸。','A patient answer or a useful suggestion is worth celebrating.')}" rows="5">${esc(draft)}</textarea></label><label class="check"><input id="kudos-consent" type="checkbox" ${consent?'checked':''} ${sent?'disabled':''}>${tr('同意以我的姓名展示这条夸夸','Show this kudos with my name')}</label><p class="hint">${tr('最多 300 字。对方确认后，才会展示在 TA 的主页。','Up to 300 characters. Visible on their profile only after they accept.')}</p>${sent?`<div class="banner">${tr('夸夸已送达，等待 TA 确认。','Kudos sent, awaiting their approval.')}</div>`:''}<p class="error" id="kudos-error" role="alert"></p></div>`;
+      return `<div class="inset" data-no-translate><h1 class="page-title">${tr('TA 哪一点打动了你？','What do you appreciate about them?')}</h1><p class="subtitle">${tr('写给','To')} ${personText(target,'name')}</p><label class="field">${tr('夸夸TA','Send kudos')}<textarea id="kudos-text" maxlength="300" ${sent?'disabled':''} placeholder="${tr('一次耐心解答、一个有用的建议，都值得夸一夸。','A patient answer or a useful suggestion is worth celebrating.')}" rows="5">${esc(draft)}</textarea></label><label class="check"><input id="kudos-consent" type="checkbox" ${consent?'checked':''} ${sent?'disabled':''}>${tr('同意以我的姓名展示这条夸夸','Show this kudos with my name')}</label><p class="hint">${tr('最多 300 字。对方确认后，才会展示在 TA 的主页。','Up to 300 characters. Visible on their profile only after they accept.')}</p>${sent?`<div class="banner">${tr('夸夸已送达，等待 TA 确认。','Kudos sent, awaiting their approval.')}</div>`:''}<p class="error" id="kudos-error" role="alert"></p></div>`;
     }
     let html=oldBody(s,p);
-    if(s==='profile')html=html.replace('<div class="inline-options">',stats('lin')+'<div class="inline-options">').replace(/<button data-act="follow">[\s\S]*?<\/button>/,tools('lin')).replace(/<section class="sectionbox"><div class="section-head" style="margin-top:0"><h3>同行的夸夸<\/h3>[\s\S]*?<\/section>/,`<section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('lin').map(k=>`<p class="quote">${esc(k.text)}</p>`).join('')}${action('list',tr('查看全部夸夸','View all kudos'),'data-owner="lin" data-kind="kudos"','backlink')}</section>`);
+    if(s==='profile')html=html.replace('<div class="inline-options">',stats('lin')+'<div class="inline-options">').replace(/<button data-act="follow">[\s\S]*?<\/button>/,tools('lin')).replace(/<section class="sectionbox"><div class="section-head" style="margin-top:0"><h3>同行的夸夸<\/h3>[\s\S]*?<\/section>/,`<section class="sectionbox" data-no-translate><h3>${tr('同行的夸夸','Peer kudos')}</h3>${visible('lin').map(k=>`<p class="quote">${kudosText(k)}</p>`).join('')}${action('list',tr('查看全部夸夸','View all kudos'),'data-owner="lin" data-kind="kudos"','backlink')}</section>`);
     if(s==='nearProfile')html=html.replace('<h3>可以聊什么</h3>',stats(state.peer)+tools(state.peer)+'<h3>可以聊什么</h3>');
     if(['profile','nearProfile'].includes(s))return profilePage(html,s==='profile'?'lin':state.peer);
     return html;
@@ -128,7 +134,7 @@
   document.addEventListener('change',e=>{if(e.target.id==='kudos-consent')consent=e.target.checked;});
   document.addEventListener('click',e=>{
     if(e.target.closest('#profile-dialog [data-assist]'))closeProfileDialog();
-    const b=e.target.closest('[data-social]');if(!b){if(e.target.closest('[data-language]'))render();return;}
+    const b=e.target.closest('[data-social]');if(!b)return;
     const a=b.dataset.social,id=b.dataset.person;
     if(a==='menu')showProfileDialog();
     if(a==='edit-profile'){if(!editDraft)editDraft={...ownProfile,interests:ownProfile.interests.join('，')};render();document.getElementById('inline-profile-editor').scrollIntoView({block:'start'});document.getElementById('edit-role').focus({preventScroll:true});}

@@ -51,7 +51,6 @@ const assert=require('node:assert/strict');
  await page.evaluate(()=>go('profile'));
  assert.equal(await page.locator('.profile-stats').count(),1);
  assert.equal(await page.getByText('同行寄语',{exact:true}).count(),0);
- await page.locator('[data-language-menu]').click();
  await page.locator('[data-language="en"]').click();
  assert.match(await page.locator('.profile-stats').innerText(),/Following/);
  assert.deepEqual(errors,[]);
