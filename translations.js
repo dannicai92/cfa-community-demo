@@ -66,8 +66,8 @@ CFA 持证状态 ›|CFA charter status ›
 建筑漫步|Architecture walks
 手冲咖啡|Pour-over coffee
 徒步|Hiking
-同行寄语|Peer appreciation
-写一段致谢|Write a thank-you
+同行的夸夸|Peer appreciation
+夸夸TA|Write a thank-you
 最近分享|Recent posts
 好奇档案|Curiosity Profiles
 如果不做现在的工作？|If you weren't in your current role?
@@ -177,7 +177,7 @@ AA制|Split costs
 我的交流|My connections
 邀请与联系方式授权|Invitations and contact sharing
 我的主页|My profile
-背景、话题与同行寄语|Background, topics and appreciation
+背景、话题与同行的夸夸|Background, topics and appreciation
 隐私与交流意愿|Privacy & preferences
 谁能看见什么，由你决定|You choose what others can see
 你不需要填满一份履历。|No need for a complete résumé.
@@ -211,7 +211,7 @@ AA制|Split costs
 一次专业问题讨论|Professional discussion
 这次交流给你带来了什么 *|What did you gain from the conversation? *
 写具体帮助，不评价投资能力或保证结果。最多 300 字。|Describe specific help, not investment performance or promised results. Up to 300 characters.
-我同意以我的姓名展示这段寄语|I agree to display this note under my name
+我同意以我的姓名展示这条夸夸|I agree to display this note under my name
 先交给对方确认，再展示到 TA 的主页。对方可以不展示，无需解释原因。|The recipient decides whether to display your note on their profile.
 送给 TA 确认|Send for approval
 例如：你分享的三个问题，帮我重新梳理了职业选择。感谢你愿意听我慢慢说。|E.g. Your three questions helped me rethink my career options. Thank you for listening.
@@ -647,3 +647,5 @@ Object.assign(englishText,{
 '例如：深圳':'E.g. Shenzhen',
 '语言设置':'Language settings'
 });
+
+Object.assign(englishText, {"夸夸TA":"Send kudos", "同行的夸夸":"Peer kudos", "背景、话题与同行的夸夸":"Background, topics and peer kudos"});
