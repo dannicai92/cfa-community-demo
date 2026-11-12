@@ -79,9 +79,16 @@
   }
   for(const [id,title] of [['personalPost','我的动态'],['socialConnections','关注与被关注'],['kudos','同行的夸夸'],['selfProfile','我的主页']])addScreen(id,title,'','','','','');
   const oldBody=body,oldFoot=foot,oldGo=go,oldAct=act,oldPhone=phone;
+  const rootTabs=[['opportunities','compass','发现'],['home','chat','动态'],['town','home','同行里'],['messages','bell','消息'],['me','user','我的']];
+  let activeRoot='opportunities';
   screens.find(x=>x[0]==='me')[1]='我的主页';
   phone=function(s,p){
     let html=oldPhone(s,p);
+    if(['profile','nearProfile','selfProfile','socialConnections','kudos','thanks','personalPost'].includes(s)&&!html.includes('<nav class="bottomnav">')){
+      const selected=s==='selfProfile'?'me':activeRoot;
+      const nav=`<nav class="bottomnav" aria-label="主导航">${rootTabs.map(([id,ic,label])=>`<button data-go="${id}" class="${selected===id?'active':''}">${ico(ic)}${label}</button>`).join('')}</nav>`;
+      const end=html.lastIndexOf('</div>');html=html.slice(0,end)+nav+html.slice(end);
+    }
     if(!['me','selfProfile'].includes(s))return html;
     html=html.replace(/<section class="assistant-dock"[\s\S]*?<\/section>/,'');
     return html.replace('<span class="capsule">',`<button class="profile-menu-trigger" data-social="menu" aria-haspopup="dialog" aria-label="${tr('个人菜单','Profile menu')}">${ico('settings')}</button><span class="capsule">`);
@@ -108,6 +115,7 @@
   };
   foot=function(s){if(s==='thanks')return `<div class="actionbar" data-no-translate>${action('send',tr('送出夸夸','Send kudos'),kudos.some(k=>k.from==='self'&&k.to===target)?'disabled':'','primary')}</div>`;return oldFoot(s);};
   go=function(s){
+    if(rootTabs.some(([id])=>id===s)){activeRoot=s;while(history.length){const frame=history.pop();backMap[frame.to]=frame.back;}}
     if(['me','profile','nearProfile','selfProfile'].includes(state.screen)&&['post','need'].includes(s))backMap[s]=state.screen;
     const frame=history.at(-1);
     if(frame&&state.screen===frame.to&&s===frame.from){history.pop();backMap[frame.to]=frame.back;owner=frame.owner;tab=frame.tab;state.peer=frame.peer;return oldGo(s);}

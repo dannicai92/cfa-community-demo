@@ -18,7 +18,7 @@ function localize(root=document.body){
   if(!originalAttributes.has(el))originalAttributes.set(el,Object.fromEntries(['placeholder','aria-label','title'].filter(k=>el.hasAttribute(k)).map(k=>[k,el.getAttribute(k)])));
   for(const [key,raw] of Object.entries(originalAttributes.get(el)))el.setAttribute(key,language==='en'?translateText(raw):raw);
  });
- document.title=language==='en'?'Tongxing · Member Community':'同行 · 会员社区';
+ document.title=language==='en'?'Community · Member Community':'Community · 会员社区';
 }
 function installLanguageMenu(){
  document.querySelectorAll('.capsule').forEach(el=>{if(el.querySelector('[data-language-menu]'))return;el.innerHTML='<button type="button" data-language-menu aria-label="语言设置" aria-haspopup="dialog" aria-expanded="false">•••</button><span aria-hidden="true">│ ⦿</span>'});
