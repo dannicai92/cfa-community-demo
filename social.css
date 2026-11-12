@@ -18,3 +18,10 @@
 .studio-header .community-brand{font-family:'Azo Sans',sans-serif;font-size:27px;font-weight:500;letter-spacing:0;line-height:1.2}
 .phone>.bottomnav,.phone>.actionbar{flex-shrink:0}.phone>.bottomnav{position:relative;z-index:2}
 @media(max-width:600px){.studio-header .community-brand{font-size:25px}}
+
+.profile-name-row{display:flex;align-items:center;gap:8px;margin:18px 0 12px}
+.profile-name-row h1{display:flex;align-items:center;flex-wrap:wrap;gap:8px;flex:0 1 auto;min-width:0;margin:0}
+.profile-name-row .profile-verification{flex-shrink:0}
+.profile-edit-icon{display:grid;place-items:center;flex:0 0 40px;width:40px;height:40px;padding:0;border-radius:50%;color:var(--ink)}
+.profile-edit-icon:hover{background:var(--pale)}
+.profile-edit-icon .icon{width:20px;height:20px}

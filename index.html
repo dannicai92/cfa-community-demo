@@ -82,7 +82,7 @@ const html=assistantPhone(s,p);
 if(s!=='me'&&s!=='compose')return html;
 const helper=s==='me'
  ?button('profile','生成 / 编辑我的专业主页','Build / edit my profile')
- :button('need','需求助手','Request assistant');
+ :button('need','AI助手','AI Assistant');
 const dock='<section class="assistant-dock" data-no-translate aria-label="'+t('模拟 AI 助手','Simulated AI assistant')+'">'+helper+'</section>';
 return html.replace(/(<nav class="bottomnav">|<div class="actionbar">)/,dock+'$1');
 };
